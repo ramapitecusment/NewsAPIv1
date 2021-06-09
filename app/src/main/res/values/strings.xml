@@ -1,5 +1,16 @@
 <resources>
     <string name="app_name">NewsApi</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="settings">Settings</string>
+    <string name="read_later_image">Read Later Image</string>
+    <string name="news_image">News Image</string>
+    <string name="top_to_bottom_shadow">Top to Bottom Shadow</string>
+
+    <string name="title">Baseball tickets? Gambling debts? Supreme Court nominee Brett Kavanaugh answers Democrats\' queries</string>
+    <string name="description">In an unprecedented give-and-take, Kavanaugh released 263 pages of questions and answers, nearly all aimed at 10 Democrats on the Senate Judiciary Committee who jousted with him during a tumultuous, four-day confirmation hearing last week.</string>
+    <string name="Interpunct">•</string>
+    <string name="error">No News found. Please, check the Internet connection</string>
+    <string name="no_article_is_found">Unfortunately, no News are found. Please, check the Internet connectivity</string>
+    <string name="search">Search</string>
 </resources>
