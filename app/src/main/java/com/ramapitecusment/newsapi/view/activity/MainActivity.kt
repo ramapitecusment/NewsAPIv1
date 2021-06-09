@@ -1,4 +1,4 @@
-package com.ramapitecusment.newsapi.view
+package com.ramapitecusment.newsapi.view.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
