@@ -6,10 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.tabs.TabLayoutMediator
-import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.databinding.FragmentNewsBinding
-import com.ramapitecusment.newsapi.model.adapter.TabLayoutAdapter
-import org.koin.android.ext.android.bind
+import com.ramapitecusment.newsapi.adapter.TabLayoutAdapter
 
 class NewsFragment : Fragment() {
     private lateinit var binding: FragmentNewsBinding

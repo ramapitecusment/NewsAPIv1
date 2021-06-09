@@ -1,4 +1,4 @@
-package com.ramapitecusment.newsapi.model.adapter
+package com.ramapitecusment.newsapi.adapter
 
 import android.graphics.drawable.Drawable
 import android.util.Log

@@ -6,8 +6,8 @@ import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-@Entity(tableName = "news_table")
-data class Article(
+@Entity(tableName = "top_headlines_table")
+data class ArticleTopHeadline(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     val author: String,
@@ -18,6 +18,5 @@ data class Article(
     val title: String,
     val url: String,
     val urlToImage: String,
-    val searchTag: String
+    val country: String
 ) : Parcelable
-

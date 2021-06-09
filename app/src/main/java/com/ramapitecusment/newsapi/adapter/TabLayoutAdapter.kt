@@ -1,4 +1,4 @@
-package com.ramapitecusment.newsapi.model.adapter
+package com.ramapitecusment.newsapi.adapter
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter

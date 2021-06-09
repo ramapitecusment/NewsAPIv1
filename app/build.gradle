@@ -61,6 +61,7 @@ dependencies {
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
 
     // Room
     implementation "androidx.room:room-runtime:$room_version"
@@ -91,6 +92,10 @@ dependencies {
 
     // RxBinding
     implementation 'com.jakewharton.rxbinding4:rxbinding:4.0.0'
+
+    // Pager 3
+    implementation "androidx.paging:paging-runtime-ktx:$paging_version"
+    implementation "androidx.paging:paging-rxjava3:$paging_version"
 
     // Test
     testImplementation 'junit:junit:4.13.2'
