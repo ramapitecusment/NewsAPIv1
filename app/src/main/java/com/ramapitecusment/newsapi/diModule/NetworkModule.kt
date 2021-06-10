@@ -1,7 +1,6 @@
 package com.ramapitecusment.newsapi.diModule
 
-import com.ramapitecusment.newsapi.util.URL
-import org.koin.android.ext.koin.androidContext
+import com.ramapitecusment.newsapi.common.URL
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory

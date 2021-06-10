@@ -7,7 +7,7 @@
 
         <variable
             name="article"
-            type="com.ramapitecusment.newsapi.model.database.Article" />
+            type="com.ramapitecusment.newsapi.services.database.ArticleEntity" />
     </data>
 
     <RelativeLayout

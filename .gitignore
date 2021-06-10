@@ -13,4 +13,4 @@
 .externalNativeBuild
 .cxx
 local.properties
-/app/src/main/java/com/ramapitecusment/newsapi/util/config.kt
+/app/src/main/java/com/ramapitecusment/newsapi/common/config.kt

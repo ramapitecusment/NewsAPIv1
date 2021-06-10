@@ -1,7 +1,6 @@
 package com.ramapitecusment.newsapi.diModule
 
-import com.ramapitecusment.newsapi.model.network.NewsApi
-import io.reactivex.rxjava3.schedulers.Schedulers.single
+import com.ramapitecusment.newsapi.services.network.NewsApi
 import org.koin.dsl.module
 import retrofit2.Retrofit
 

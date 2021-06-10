@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/newsFragment"
-        android:name="com.ramapitecusment.newsapi.view.fragment.NewsFragment"
+        android:name="com.ramapitecusment.newsapi.scenes.news.NewsFragment"
         tools:layout="@layout/fragment_news"
         android:label="NewsFragment">
         <action
@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/newsDetailsFragment"
-        android:name="com.ramapitecusment.newsapi.view.fragment.NewsDetailsFragment"
+        android:name="com.ramapitecusment.newsapi.scenes.newsDetails.NewsDetailsFragment"
         android:label="fragment_news_details"
         tools:layout="@layout/fragment_news_details">
         <action
