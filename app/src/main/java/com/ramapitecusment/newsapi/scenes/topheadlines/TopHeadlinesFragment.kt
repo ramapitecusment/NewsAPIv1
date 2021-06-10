@@ -1,4 +1,4 @@
-package com.ramapitecusment.newsapi.view.fragment
+package com.ramapitecusment.newsapi.scenes.topheadlines
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

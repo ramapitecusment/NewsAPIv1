@@ -12,7 +12,7 @@ import com.ramapitecusment.newsapi.common.TabLayoutAdapter
 class NewsFragment : Fragment() {
     private lateinit var binding: FragmentNewsBinding
 
-    override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, sIS: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, sIS: Bundle?): View {
         binding = FragmentNewsBinding.inflate(inflater)
         return binding.root
     }

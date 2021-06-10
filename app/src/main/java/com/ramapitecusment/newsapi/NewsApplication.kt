@@ -7,6 +7,6 @@ class NewsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        initDI(applicationContext)
+        initDI(this@NewsApplication)
     }
 }

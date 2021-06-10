@@ -1,4 +1,4 @@
-package com.ramapitecusment.newsapi.viewmodel
+package com.ramapitecusment.newsapi.scenes.topheadlines
 
 class TopHeadlinesViewModel {
 }

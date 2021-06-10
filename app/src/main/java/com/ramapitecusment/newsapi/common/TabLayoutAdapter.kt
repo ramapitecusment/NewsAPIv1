@@ -4,7 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.ramapitecusment.newsapi.scenes.everything.EverythingFragment
 import com.ramapitecusment.newsapi.scenes.readLater.ReadLaterFragment
-import com.ramapitecusment.newsapi.view.fragment.TopHeadlinesFragment
+import com.ramapitecusment.newsapi.scenes.topheadlines.TopHeadlinesFragment
 
 class TabLayoutAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
