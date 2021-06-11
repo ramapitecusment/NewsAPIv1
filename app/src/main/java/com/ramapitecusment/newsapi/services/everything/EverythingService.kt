@@ -7,6 +7,8 @@ import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.network.NewsApi
 import com.ramapitecusment.newsapi.services.network.Response
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.schedulers.Schedulers
 
@@ -24,4 +26,20 @@ class EverythingService(
         dao.insertAllArticles(articles)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
+
+    fun getAll(): Flowable<List<ArticleEntity>> =
+        dao.getAllArticles()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+    fun getArticlesBySearchTag(searchTag: String): Flowable<List<ArticleEntity>> =
+        dao.getArticlesBySearchTag(searchTag)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+    fun deleteAll(): Completable =
+        dao.deleteAllArticles()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
 }

@@ -2,7 +2,9 @@ package com.ramapitecusment.newsapi.services.database
 
 import androidx.room.*
 import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Maybe
+import io.reactivex.rxjava3.core.Observable
 
 @Dao
 interface ArticleDao {
@@ -27,10 +29,10 @@ interface ArticleDao {
     fun deleteAllArticles(): Completable
 
     @Query("SELECT * FROM news_table")
-    fun getAllArticles(): Maybe<List<ArticleEntity>>
+    fun getAllArticles(): Flowable<List<ArticleEntity>>
 
     @Query("SELECT * FROM news_table WHERE searchTag =:q")
-    fun getArticlesBySearchTag(q: String): Maybe<List<ArticleEntity>>
+    fun getArticlesBySearchTag(q: String): Flowable<List<ArticleEntity>>
 
 //  ################################################################################################
 //  ###################################   Top Headlines   ##########################################
@@ -52,10 +54,10 @@ interface ArticleDao {
     fun deleteAllTopHeadlines(): Completable
 
     @Query("SELECT * FROM top_headlines_table")
-    fun getAllTopHeadlines(): Maybe<List<ArticleTopHeadline>>
+    fun getAllTopHeadlines(): Flowable<List<ArticleTopHeadline>>
 
     @Query("SELECT * FROM top_headlines_table WHERE country =:country")
-    fun getArticlesByTopHeadline(country: String): Maybe<List<ArticleTopHeadline>>
+    fun getArticlesByTopHeadline(country: String): Flowable<List<ArticleTopHeadline>>
 
 
 //  ################################################################################################
@@ -78,5 +80,5 @@ interface ArticleDao {
     fun deleteAllReadLater(): Completable
 
     @Query("SELECT * FROM read_later_table")
-    fun getAllReadLater(): Maybe<List<ReadLater>>
+    fun getAllReadLater(): Flowable<List<ReadLater>>
 }

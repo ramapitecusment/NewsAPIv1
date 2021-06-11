@@ -5,6 +5,9 @@
 
     <data>
 
+        <variable
+            name="viewmodel"
+            type="com.ramapitecusment.newsapi.scenes.everything.EverythingViewModel" />
     </data>
 
     <LinearLayout
@@ -24,7 +27,7 @@
             android:rowCount="1">
 
             <EditText
-                android:id="@+id/editTextSearch"
+                android:id="@+id/newsSearch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_row="0"
@@ -68,8 +71,12 @@
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/news_recycler_view"
+                        setDataToRV="@{viewmodel.articlesByTag}"
+                        textViewId="@{tvNoArticle}"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"

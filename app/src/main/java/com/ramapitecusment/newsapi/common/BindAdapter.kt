@@ -16,6 +16,9 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 @BindingAdapter("bindImage", "progressBar")
 fun bindImage(image: ImageView, imgUrl: String?, progressBar: ProgressBar) {
@@ -31,7 +34,7 @@ fun bindImage(image: ImageView, imgUrl: String?, progressBar: ProgressBar) {
                     isFirstResource: Boolean
                 ): Boolean {
                     progressBar.visibility = View.GONE
-                    return false;
+                    return false
                 }
 
                 override fun onResourceReady(
@@ -42,26 +45,40 @@ fun bindImage(image: ImageView, imgUrl: String?, progressBar: ProgressBar) {
                     isFirstResource: Boolean
                 ): Boolean {
                     progressBar.visibility = View.GONE
-                    return false;
+                    return false
                 }
-
             })
             .into(image)
     }
 }
 
 @BindingAdapter("setDataToRV", "textViewId")
-fun setDataToRV(recyclerView: RecyclerView, data: List<ArticleEntity>?, noData: TextView) {
-    data?.let {
-        if (it.isNotEmpty()) {
-            Log.d(LOG, "setDataToRV:")
-            val adapter = recyclerView.adapter as? NewsRecyclerViewAdapter
-            adapter?.submitList(it)
-            recyclerView.visibility = View.VISIBLE
-            noData.visibility = View.GONE
-        } else {
+fun setDataToRV(
+    recyclerView: RecyclerView,
+    flowable: Flowable<List<ArticleEntity>>,
+    noData: TextView
+) {
+    flowable
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe({ data ->
+            data?.let {
+                if (it.isNotEmpty()) {
+                    Log.d(LOG, "setDataToRV: ${it.size}")
+                    val adapter = recyclerView.adapter as? NewsRecyclerViewAdapter
+                    adapter?.submitList(it)
+                    recyclerView.visibility = View.VISIBLE
+                    noData.visibility = View.GONE
+                } else {
+                    recyclerView.visibility = View.GONE
+                    noData.visibility = View.VISIBLE
+                }
+            }
+        }, {
+            Log.d(LOG, "Error setDataToRV: $it")
             recyclerView.visibility = View.GONE
             noData.visibility = View.VISIBLE
-        }
-    }
+        }, {
+
+        })
 }

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [ArticleEntity::class, ArticleTopHeadline::class, ReadLater::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class ArticleDatabase : RoomDatabase(){

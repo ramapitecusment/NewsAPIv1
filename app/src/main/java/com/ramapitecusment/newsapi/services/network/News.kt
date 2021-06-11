@@ -6,50 +6,51 @@ import com.ramapitecusment.newsapi.services.database.ArticleTopHeadline
 
 data class Article(
     @SerializedName("author")
-    val author: String,
+    val author: String?,
     @SerializedName("content")
-    val content: String,
+    val content: String?,
     @SerializedName("description")
-    val description: String,
+    val description: String?,
     @SerializedName("publishedAt")
-    val publishedAt: String,
+    val publishedAt: String?,
     @SerializedName("source")
-    val source: Source,
+    val source: Source?,
     @SerializedName("title")
-    val title: String,
+    val title: String?,
     @SerializedName("url")
-    val url: String,
+    val url: String?,
     @SerializedName("urlToImage")
-    val urlToImage: String
+    val urlToImage: String?
 )
 
 data class Source(
     @SerializedName("id")
-    val id: String,
+    val id: String?,
     @SerializedName("name")
-    val name: String
+    val name: String?
 )
 
 data class Response(
     @SerializedName("articles")
-    val articles: List<Article>,
+    val articles: List<Article>?,
     @SerializedName("status")
-    val status: String,
+    val status: String?,
     @SerializedName("totalResults")
-    val totalResults: Int
+    val totalResults: Int?
 )
 
-fun Article.toArticleEntity(searchTag: String): ArticleEntity = ArticleEntity(
-    author = author,
-    content = content,
-    description = description,
-    publishedAt = publishedAt,
-    source = source.name,
-    title = title,
-    url = url,
-    urlToImage = urlToImage,
-    searchTag = searchTag
-)
+fun Article.toArticleEntity(searchTag: String): ArticleEntity =
+    ArticleEntity(
+        author = author,
+        content = content,
+        description = description,
+        publishedAt = publishedAt,
+        source = source?.name,
+        title = title,
+        url = url,
+        urlToImage = urlToImage,
+        searchTag = searchTag
+    )
 
 fun List<Article>.toArticleEntity(searchTag: String): List<ArticleEntity> {
     return this.map {
@@ -62,7 +63,7 @@ fun Article.toArticleTopHeadline(country: String): ArticleTopHeadline = ArticleT
     content = content,
     description = description,
     publishedAt = publishedAt,
-    source = source.name,
+    source = source?.name,
     title = title,
     url = url,
     urlToImage = urlToImage,

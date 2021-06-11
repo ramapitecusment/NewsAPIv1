@@ -13,4 +13,6 @@
     <string name="error">No News found. Please, check the Internet connection</string>
     <string name="no_article_is_found">Unfortunately, no News are found. Please, check the Internet connectivity</string>
     <string name="search">Search</string>
+    <string name="delete">Delete</string>
+    <string name="delete_data">Очистить данные</string>
 </resources>
