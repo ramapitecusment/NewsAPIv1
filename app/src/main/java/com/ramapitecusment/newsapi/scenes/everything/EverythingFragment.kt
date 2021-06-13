@@ -13,7 +13,7 @@ import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
 import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.annotations.NonNull
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -25,8 +25,9 @@ class EverythingFragment : Fragment() {
     private val everythingViewModel by viewModel<EverythingViewModel>()
     private lateinit var binding: FragmentEverythingBinding
     private lateinit var adapter: NewsRecyclerViewAdapter
+    private var searchObservable: Disposable? = null
 
-    override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, sIS: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, sIS: Bundle?): View {
         binding = FragmentEverythingBinding.inflate(inflater)
         setHasOptionsMenu(true)
         return binding.root
@@ -36,9 +37,37 @@ class EverythingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.viewmodel = everythingViewModel
         binding.lifecycleOwner = this
-        setListeners()
         setAdapter()
-        everythingViewModel.searchTag.value = QUERY_DEFAULT
+        setListeners()
+        isLoadingListener()
+        isErrorListener()
+        getFromRemote(QUERY_DEFAULT)
+    }
+
+    private fun isErrorListener() {
+        everythingViewModel.isError.observe(viewLifecycleOwner) { isError ->
+            if (isError) {
+                binding.newsRecyclerView.visibility = View.GONE
+                binding.tvNoArticle.visibility = View.VISIBLE
+                binding.progressbar.visibility = View.GONE
+            } else {
+                binding.tvNoArticle.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun isLoadingListener() {
+        everythingViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading) {
+                binding.newsRecyclerView.visibility = View.GONE
+                binding.tvNoArticle.visibility = View.GONE
+                binding.progressbar.visibility = View.VISIBLE
+            } else {
+                binding.newsRecyclerView.visibility = View.VISIBLE
+                binding.tvNoArticle.visibility = View.GONE
+                binding.progressbar.visibility = View.GONE
+            }
+        }
     }
 
     private fun setAdapter() {
@@ -48,7 +77,7 @@ class EverythingFragment : Fragment() {
 
     private fun setListeners() {
         binding.buttonSearch.setOnClickListener {
-            everythingViewModel.searchTag.value = binding.newsSearch.text.toString()
+            everythingViewModel.searchTag.onNext(binding.newsSearch.text.toString())
             getFromRemote(binding.newsSearch.text.toString())
         }
 
@@ -60,15 +89,48 @@ class EverythingFragment : Fragment() {
             }
             .map { it.toString() }
             .distinctUntilChanged()
+            .switchMap {
+                Log.d(LOG, "switchMap rxSearch -$it-")
+                everythingViewModel.searchTag.onNext(it)
+                deleteAll()
+                getFromRemote(it)
+                getArticlesByTag().toObservable()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+            }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                Log.d(LOG, "rxSearch -$it-")
-                everythingViewModel.searchTag.value = it
-                getFromRemote(it)
-            }
+            .subscribe({ data ->
+                data?.let {
+                    if (it.isNotEmpty()) {
+                        Log.d(LOG, "setDataToRV: ${it.size}")
+                        adapter.submitList(it)
+                        binding.newsRecyclerView.visibility = View.VISIBLE
+                        binding.tvNoArticle.visibility = View.GONE
+                        binding.progressbar.visibility = View.GONE
+                    } else {
+                        recyclerViewNoData()
+                    }
+                }
+            }, {
+                Log.d(LOG, "Error setDataToRV: $it")
+                recyclerViewNoData()
+            }, {
+
+            })
         compositeDisposable.add(result)
     }
+
+    private fun recyclerViewNoData() {
+        binding.tvNoArticle.visibility = View.VISIBLE
+        binding.newsRecyclerView.visibility = View.GONE
+        binding.newsRecyclerView.visibility = View.GONE
+    }
+
+    private fun getArticlesByTag(): Flowable<List<ArticleEntity>> =
+        everythingViewModel.articlesByTag
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
 
     private val clickListener: (article: ArticleEntity) -> Unit = { article ->
 //        navigateToArticleDetails(article)
@@ -76,6 +138,10 @@ class EverythingFragment : Fragment() {
 
     private fun getFromRemote(searchTag: String) {
         everythingViewModel.getFromRemote(searchTag)
+    }
+
+    private fun deleteAll() {
+        everythingViewModel.deleteAll()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -86,7 +152,7 @@ class EverythingFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.delete -> {
-                everythingViewModel.deleteAll()
+                deleteAll()
                 return true
             }
         }
@@ -95,6 +161,7 @@ class EverythingFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        searchObservable?.dispose()
         compositeDisposable.dispose()
         everythingViewModel.destroy()
     }

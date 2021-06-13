@@ -55,51 +55,59 @@
 
         </GridLayout>
 
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipeRefresh"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/nestedScrollView"
+            <ProgressBar
+                android:id="@+id/progressbar"
+                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipeRefresh"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/nestedScrollView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/news_recycler_view"
-                        setDataToRV="@{viewmodel.articlesByTag}"
-                        textViewId="@{tvNoArticle}"
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:clipToPadding="false"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        tools:listitem="@layout/news_item" />
+                        android:layout_height="match_parent">
 
-                    <TextView
-                        android:id="@+id/tv_no_article"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/error"
-                        android:textAlignment="center"
-                        android:textSize="@dimen/_20sdp"
-                        android:visibility="gone"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/news_recycler_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:clipToPadding="false"
+                            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:listitem="@layout/news_item" />
 
-            </androidx.core.widget.NestedScrollView>
-
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
+                        <TextView
+                            android:id="@+id/tv_no_article"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/error"
+                            android:textAlignment="center"
+                            android:textSize="@dimen/_20sdp"
+                            android:visibility="gone"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.core.widget.NestedScrollView>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        </FrameLayout>
     </LinearLayout>
 </layout>

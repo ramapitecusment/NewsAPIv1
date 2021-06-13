@@ -2,6 +2,7 @@ package com.ramapitecusment.newsapi.services.everything
 
 import android.content.Context
 import com.ramapitecusment.newsapi.common.API_KEY_VALUE
+import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.services.database.ArticleDao
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.network.NewsApi
@@ -18,7 +19,7 @@ class EverythingService(
     private val dao: ArticleDao
 ) {
     fun getFromRemote(searchTag: String): Maybe<retrofit2.Response<Response>> =
-        api.getEverythingRemote(searchTag, API_KEY_VALUE)
+        api.getEverythingRemote(searchTag, API_KEY_VALUE, PAGE_SIZE_VALUE)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
 
