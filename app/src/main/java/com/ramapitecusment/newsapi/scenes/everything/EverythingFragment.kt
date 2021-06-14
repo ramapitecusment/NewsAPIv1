@@ -26,6 +26,7 @@ class EverythingFragment : Fragment() {
     private lateinit var binding: FragmentEverythingBinding
     private lateinit var adapter: NewsRecyclerViewAdapter
     private var searchObservable: Disposable? = null
+    private var isNetworkError = false
 
     override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, sIS: Bundle?): View {
         binding = FragmentEverythingBinding.inflate(inflater)
@@ -41,15 +42,32 @@ class EverythingFragment : Fragment() {
         setListeners()
         isLoadingListener()
         isErrorListener()
-        getFromRemote(QUERY_DEFAULT)
+        isNetworkErrorListener()
+    }
+
+    private fun isNetworkErrorListener() {
+        everythingViewModel.isInternetError.observe(viewLifecycleOwner) { isInternetError ->
+            Log.e(LOG, "isNetworkErrorListener: $isInternetError")
+            isNetworkError = isInternetError
+            if (isInternetError) {
+                binding.newsRecyclerView.visibility = View.GONE
+                binding.tvNoArticle.visibility = View.GONE
+                binding.tvInternetProblems.visibility = View.VISIBLE
+                binding.progressbar.visibility = View.GONE
+            } else {
+                binding.tvInternetProblems.visibility = View.GONE
+            }
+        }
     }
 
     private fun isErrorListener() {
         everythingViewModel.isError.observe(viewLifecycleOwner) { isError ->
+            Log.e(LOG, "isErrorListener: $isError")
             if (isError) {
                 binding.newsRecyclerView.visibility = View.GONE
                 binding.tvNoArticle.visibility = View.VISIBLE
                 binding.progressbar.visibility = View.GONE
+                binding.tvInternetProblems.visibility = View.GONE
             } else {
                 binding.tvNoArticle.visibility = View.GONE
             }
@@ -58,13 +76,13 @@ class EverythingFragment : Fragment() {
 
     private fun isLoadingListener() {
         everythingViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            Log.d(LOG, "isLoadingListener: $isLoading")
             if (isLoading) {
                 binding.newsRecyclerView.visibility = View.GONE
                 binding.tvNoArticle.visibility = View.GONE
+                binding.tvInternetProblems.visibility = View.GONE
                 binding.progressbar.visibility = View.VISIBLE
             } else {
-                binding.newsRecyclerView.visibility = View.VISIBLE
-                binding.tvNoArticle.visibility = View.GONE
                 binding.progressbar.visibility = View.GONE
             }
         }
@@ -85,7 +103,8 @@ class EverythingFragment : Fragment() {
             .debounce(700, TimeUnit.MILLISECONDS)
             .filter { charSequence ->
                 Log.d(LOG, "before filter rxSearch -$charSequence-")
-                !TextUtils.isEmpty(binding.newsSearch.text.toString().trim { it <= ' ' })
+                !TextUtils.isEmpty(
+                    binding.newsSearch.text.toString().trim { it <= ' ' }) && !isNetworkError
             }
             .map { it.toString() }
             .distinctUntilChanged()
@@ -98,6 +117,7 @@ class EverythingFragment : Fragment() {
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
             }
+            .distinct()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ data ->
@@ -108,8 +128,6 @@ class EverythingFragment : Fragment() {
                         binding.newsRecyclerView.visibility = View.VISIBLE
                         binding.tvNoArticle.visibility = View.GONE
                         binding.progressbar.visibility = View.GONE
-                    } else {
-                        recyclerViewNoData()
                     }
                 }
             }, {

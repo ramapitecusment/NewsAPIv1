@@ -27,7 +27,8 @@ interface NewsApi {
     @GET(TOP_HEADLINES)
     fun getTopHeadlinesRemote(
         @Query(COUNTRY) country: String,
-        @Query(API_KEY) apiKey: String
+        @Query(API_KEY) apiKey: String,
+        @Query(PAGE_SIZE) pageSize: Int
     ): Maybe<retrofit2.Response<Response>>
 }
 

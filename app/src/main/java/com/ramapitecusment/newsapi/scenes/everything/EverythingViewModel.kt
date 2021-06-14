@@ -33,6 +33,12 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
     val isError: LiveData<Boolean>
         get() = _isError
 
+    private val _isInternetError: MutableLiveData<Boolean> by lazy {
+        MutableLiveData()
+    }
+    val isInternetError: LiveData<Boolean>
+        get() = _isInternetError
+
 
     val articles: Flowable<List<ArticleEntity>?> = everythingService.getAll()
         .flatMapIterable { it }
@@ -67,14 +73,23 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext {
                 Log.d(LOG, "Articles on Next: ${it.size}")
+                if (it.isEmpty()) {
+                    _isLoading.postValue(false)
+                    _isError.postValue(false)
+                }
             }
             .doOnComplete {
                 Log.d(LOG, "Articles Completed")
             }
             .doOnError {
                 Log.e(LOG, "Articles Error: $it")
-                _isError.value = true
-                _isLoading.value = false
+                _isError.postValue(true)
+                _isLoading.postValue(false)
+            }
+            .doOnSubscribe {
+                Log.d(LOG, "Articles doOnSubscribe")
+                _isLoading.postValue(true)
+                _isError.postValue(false)
             }
 
     fun getFromRemote(searchTag: String) {
@@ -84,15 +99,17 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
             .subscribe({
                 Log.d(LOG, "Response: $it")
                 if (it.isSuccessful) {
+                    _isInternetError.postValue(false)
                     it.body()?.let { body ->
                         Log.d(LOG, "Response: ${body.articles?.size}")
                         body.articles?.toArticleEntity(searchTag)?.let { it1 -> insertAll(it1) }
                     }
                 }
             }, {
-                Log.e(LOG, "Error: $it")
+                Log.e(LOG, "Internet Error: $it")
+                _isInternetError.postValue(true)
             }, {
-                Log.d(LOG, "Completed")
+                Log.d(LOG, "Internet Completed")
             })
         compositeDisposable.add(disposable)
     }
@@ -103,6 +120,10 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 Log.d(LOG, "Insert success: $it")
+                if (it.isEmpty()) {
+                    _isLoading.postValue(false)
+                    _isError.postValue(true)
+                }
             }, {
                 Log.e(LOG, "Insert error: $it")
             }, {

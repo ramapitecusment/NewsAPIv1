@@ -11,7 +11,8 @@
     <string name="description">In an unprecedented give-and-take, Kavanaugh released 263 pages of questions and answers, nearly all aimed at 10 Democrats on the Senate Judiciary Committee who jousted with him during a tumultuous, four-day confirmation hearing last week.</string>
     <string name="Interpunct">•</string>
     <string name="error">No News found. Please, check the Internet connection</string>
-    <string name="no_article_is_found">Unfortunately, no News are found. Please, check the Internet connectivity</string>
+    <string name="no_article_is_found_internet">Unfortunately, no News are found. Please, check the Internet connectivity</string>
+    <string name="no_article_is_found">Unfortunately, no News are found.</string>
     <string name="search">Search</string>
     <string name="delete">Delete</string>
     <string name="delete_data">Очистить данные</string>

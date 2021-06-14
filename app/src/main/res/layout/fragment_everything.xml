@@ -97,7 +97,22 @@
                             android:id="@+id/tv_no_article"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/error"
+                            android:text="@string/no_article_is_found"
+                            android:textAlignment="center"
+                            android:textSize="@dimen/_20sdp"
+                            android:layout_margin="10dp"
+                            android:visibility="gone"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <TextView
+                            android:id="@+id/tv_internet_problems"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/no_article_is_found_internet"
+                            android:layout_margin="10dp"
                             android:textAlignment="center"
                             android:textSize="@dimen/_20sdp"
                             android:visibility="gone"
