@@ -5,21 +5,22 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.jakewharton.rxbinding4.widget.textChanges
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.NewsRecyclerViewAdapter
-import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
 import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
+
 
 class EverythingFragment : Fragment() {
     private val compositeDisposable = CompositeDisposable()
@@ -28,6 +29,13 @@ class EverythingFragment : Fragment() {
     private lateinit var adapter: NewsRecyclerViewAdapter
     private var searchObservable: Disposable? = null
     private var isNetworkError = false
+
+    private val paginator = PublishProcessor.create<Int>()
+    private var pageNumber = 1
+    private var isLoading = false
+    private var lastVisibleItem = -1
+    private var totalItemCount = -1
+    private val VISIBLE_THRESHOLD = 4
 
     override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, sIS: Bundle?): View {
         binding = FragmentEverythingBinding.inflate(inflater)
@@ -40,10 +48,106 @@ class EverythingFragment : Fragment() {
         binding.viewmodel = everythingViewModel
         binding.lifecycleOwner = this
         setAdapter()
-        setListeners()
+        setSearchButtonListener()
+        setSearchViewListener()
+        setLoadModeListener()
         isLoadingListener()
         isErrorListener()
         isNetworkErrorListener()
+    }
+
+    private fun setLoadModeListener() {
+        binding.newsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                totalItemCount = layoutManager.itemCount
+                lastVisibleItem = layoutManager.findLastVisibleItemPosition()
+                Log.d(LOG, "onScrolled: $totalItemCount - $lastVisibleItem")
+                if (!isLoading && totalItemCount <= (lastVisibleItem + VISIBLE_THRESHOLD)) {
+                    pageNumber++
+                    paginator.onNext(pageNumber)
+                    isLoading = true
+                }
+            }
+        })
+        paginator.onNext(pageNumber)
+
+        val result = paginator
+            .doOnNext {
+                isLoading = true
+                binding.scrollProgressbar.visibility = View.VISIBLE
+            }.concatMap {
+
+            }
+    }
+
+    private fun setSearchViewListener() {
+        val result = binding.newsSearch.textChanges()
+            .debounce(900, TimeUnit.MILLISECONDS)
+            .filter { charSequence ->
+                Log.d(LOG, "before filter rxSearch -$charSequence- $isNetworkError")
+                !(TextUtils.isEmpty(
+                    binding.newsSearch.text.toString().trim { it <= ' ' })) && !isNetworkError
+            }
+            .map { it.toString() }
+            .distinctUntilChanged()
+            .switchMap {
+                everythingViewModel.searchTag.onNext(it)
+                Log.d(LOG, "switchMap: ")
+                everythingViewModel.articlesSearch
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread()).toObservable()
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ data ->
+                // TODO Почему вызывается дважды?
+                Log.d(LOG, "setListeners: ")
+                data?.let {
+                    if (it.isNotEmpty()) {
+                        Log.d(LOG, "setDataToRV: ${it.size}")
+                        adapter.submitList(it)
+                        binding.newsRecyclerView.visibility = View.VISIBLE
+                        binding.tvNoArticle.visibility = View.GONE
+                        binding.progressbar.visibility = View.GONE
+                    }
+                }
+            }, {
+                Log.d(LOG, "Error setDataToRV: $it")
+                recyclerViewNoData()
+            }, {
+
+            })
+        compositeDisposable.add(result)
+    }
+
+    private fun setSearchButtonListener() {
+        binding.buttonSearch.setOnClickListener {
+            everythingViewModel.searchTag.onNext(binding.newsSearch.text.toString())
+            val buttonResult = everythingViewModel.articles
+                .distinct()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ data ->
+                    data?.let {
+                        if (it.isNotEmpty()) {
+                            // TODO Почему вызывается дважды?
+                            Log.d(LOG, "setDataToRV: ${it.size}")
+                            adapter.submitList(it)
+                            binding.newsRecyclerView.visibility = View.VISIBLE
+                            binding.tvNoArticle.visibility = View.GONE
+                            binding.progressbar.visibility = View.GONE
+                        }
+                    }
+                }, {
+                    Log.d(LOG, "Error setDataToRV: $it")
+                    recyclerViewNoData()
+                }, {
+                    Log.d(LOG, "Completed setDataToRV: $it")
+                })
+            compositeDisposable.add(buttonResult)
+        }
     }
 
     private fun isNetworkErrorListener() {
@@ -92,74 +196,6 @@ class EverythingFragment : Fragment() {
     private fun setAdapter() {
         adapter = NewsRecyclerViewAdapter(clickListener)
         binding.newsRecyclerView.adapter = adapter
-    }
-
-//    val resultDisposable: Disposable = Observable
-
-    private fun setListeners() {
-        binding.buttonSearch.setOnClickListener {
-            everythingViewModel.searchTag.onNext(binding.newsSearch.text.toString())
-            val buttonResult = everythingViewModel.articles
-                .distinct()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ data ->
-                    data?.let {
-                        if (it.isNotEmpty()) {
-                            // TODO Почему вызывается дважды?
-                            Log.d(LOG, "setDataToRV: ${it.size}")
-                            adapter.submitList(it)
-                            binding.newsRecyclerView.visibility = View.VISIBLE
-                            binding.tvNoArticle.visibility = View.GONE
-                            binding.progressbar.visibility = View.GONE
-                        }
-                    }
-                }, {
-                    Log.d(LOG, "Error setDataToRV: $it")
-                    recyclerViewNoData()
-                }, {
-                    Log.d(LOG, "Completed setDataToRV: $it")
-                })
-            compositeDisposable.add(buttonResult)
-        }
-
-        val result = binding.newsSearch.textChanges()
-            .debounce(700, TimeUnit.MILLISECONDS)
-            .filter { charSequence ->
-                Log.d(LOG, "before filter rxSearch -$charSequence- $isNetworkError")
-                !(TextUtils.isEmpty(
-                    binding.newsSearch.text.toString().trim { it <= ' ' })) && !isNetworkError
-            }
-            .map { it.toString() }
-            .distinctUntilChanged()
-            .switchMap {
-                everythingViewModel.searchTag.onNext(it)
-                Log.d(LOG, "switchMap: ")
-                everythingViewModel.articlesSearch
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread()).toObservable()
-            }
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ data ->
-                // TODO Почему вызывается дважды?
-                Log.d(LOG, "setListeners: ")
-                data?.let {
-                    if (it.isNotEmpty()) {
-                        Log.d(LOG, "setDataToRV: ${it.size}")
-                        adapter.submitList(it)
-                        binding.newsRecyclerView.visibility = View.VISIBLE
-                        binding.tvNoArticle.visibility = View.GONE
-                        binding.progressbar.visibility = View.GONE
-                    }
-                }
-            }, {
-                Log.d(LOG, "Error setDataToRV: $it")
-                recyclerViewNoData()
-            }, {
-
-            })
-        compositeDisposable.add(result)
     }
 
 //    private fun setListeners() {

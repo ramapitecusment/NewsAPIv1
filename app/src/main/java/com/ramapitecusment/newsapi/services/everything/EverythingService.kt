@@ -18,8 +18,8 @@ class EverythingService(
     private val context: Context,
     private val dao: ArticleDao
 ) {
-    fun getFromRemote(searchTag: String): Maybe<retrofit2.Response<Response>> =
-        api.getEverythingRemote(searchTag, API_KEY_VALUE, PAGE_SIZE_VALUE)
+    fun getFromRemote(searchTag: String, page: Int): Maybe<retrofit2.Response<Response>> =
+        api.getEverythingRemote(searchTag, API_KEY_VALUE, PAGE_SIZE_VALUE, page)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
 

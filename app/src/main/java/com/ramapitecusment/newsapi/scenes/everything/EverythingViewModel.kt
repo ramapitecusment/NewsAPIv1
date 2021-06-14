@@ -8,11 +8,8 @@ import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.everything.EverythingService
-import com.ramapitecusment.newsapi.services.network.Response
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -23,7 +20,10 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
     var searchTag: PublishProcessor<String> = PublishProcessor.create()
     var articles: PublishProcessor<List<ArticleEntity>> = PublishProcessor.create()
     var articlesSearch: PublishProcessor<List<ArticleEntity>> = PublishProcessor.create()
+    var pageObservable: PublishProcessor<Int> = PublishProcessor.create()
+
     private var search = QUERY_DEFAULT
+    private var page = 1
 
     private val _isLoading: MutableLiveData<Boolean> by lazy {
         MutableLiveData()
@@ -47,10 +47,9 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
     init {
         searchTag
             .switchMap {
-                Log.d(LOG, "SearchTag: $search")
+                Log.d(LOG, "SearchTag: $search - $page")
                 search = it
-                deleteAll()
-                getFromRemote(search)
+                getFromRemote(search, page)
                 _isError.postValue(false)
                 _isLoading.postValue(true)
                 everythingService.getArticlesBySearchTag(search)
@@ -103,8 +102,8 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
 //                _isError.postValue(false)
 //            }
 
-    fun getFromRemote(searchTag: String) {
-        val disposable = everythingService.getFromRemote(searchTag)
+    fun getFromRemote(searchTag: String, page: Int) {
+        val disposable = everythingService.getFromRemote(searchTag, page)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({

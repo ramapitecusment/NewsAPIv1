@@ -21,7 +21,8 @@ interface NewsApi {
     fun getEverythingRemote(
         @Query(QUERY) q: String,
         @Query(API_KEY) apiKey: String,
-        @Query(PAGE_SIZE) pageSize: Int
+        @Query(PAGE_SIZE) pageSize: Int,
+        @Query(PAGE) page: Int
     ): Maybe<retrofit2.Response<Response>>
 
     @GET(TOP_HEADLINES)
