@@ -73,10 +73,6 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext {
                 Log.d(LOG, "Articles on Next: ${it.size}")
-                if (it.isEmpty()) {
-                    _isLoading.postValue(false)
-                    _isError.postValue(false)
-                }
             }
             .doOnComplete {
                 Log.d(LOG, "Articles Completed")
@@ -104,6 +100,9 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
                         Log.d(LOG, "Response: ${body.articles?.size}")
                         body.articles?.toArticleEntity(searchTag)?.let { it1 -> insertAll(it1) }
                     }
+                } else {
+                    _isError.postValue(true)
+                    _isLoading.postValue(false)
                 }
             }, {
                 Log.e(LOG, "Internet Error: $it")

@@ -96,7 +96,29 @@ class EverythingFragment : Fragment() {
     private fun setListeners() {
         binding.buttonSearch.setOnClickListener {
             everythingViewModel.searchTag.onNext(binding.newsSearch.text.toString())
+            deleteAll()
             getFromRemote(binding.newsSearch.text.toString())
+            val buttonResult = getArticlesByTag()
+                .distinct()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ data ->
+                    data?.let {
+                        if (it.isNotEmpty()) {
+                            Log.d(LOG, "setDataToRV: ${it.size}")
+                            adapter.submitList(it)
+                            binding.newsRecyclerView.visibility = View.VISIBLE
+                            binding.tvNoArticle.visibility = View.GONE
+                            binding.progressbar.visibility = View.GONE
+                        }
+                    }
+                }, {
+                    Log.d(LOG, "Error setDataToRV: $it")
+                    recyclerViewNoData()
+                }, {
+                    Log.d(LOG, "Completed setDataToRV: $it")
+                })
+            compositeDisposable.add(buttonResult)
         }
 
         val result = binding.newsSearch.textChanges()
