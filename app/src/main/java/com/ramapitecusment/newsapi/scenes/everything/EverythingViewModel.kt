@@ -8,17 +8,21 @@ import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.everything.EverythingService
+import com.ramapitecusment.newsapi.services.network.Response
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
-import io.reactivex.rxjava3.subjects.PublishSubject
 
 
 class EverythingViewModel(private val everythingService: EverythingService) : ViewModel() {
     private val compositeDisposable = CompositeDisposable()
-    var searchTag: PublishSubject<String> = PublishSubject.create()
+    var searchTag: PublishProcessor<String> = PublishProcessor.create()
+    var articles: PublishProcessor<List<ArticleEntity>> = PublishProcessor.create()
+    var articlesSearch: PublishProcessor<List<ArticleEntity>> = PublishProcessor.create()
     private var search = QUERY_DEFAULT
 
     private val _isLoading: MutableLiveData<Boolean> by lazy {
@@ -40,53 +44,64 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
         get() = _isInternetError
 
 
-    val articles: Flowable<List<ArticleEntity>?> = everythingService.getAll()
-        .flatMapIterable { it }
-        .filter { it.searchTag.equals(search) }
-        .toList()
-        .toFlowable()
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-
     init {
         searchTag
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ _search ->
-                search = _search
-                Log.d(LOG, "SearchTag: $search")
-
-            }, {
-                Log.e(LOG, "SearchTag Error: $it")
-            })
-    }
-
-    val articlesByTag: Flowable<List<ArticleEntity>> =
-        everythingService.getArticlesBySearchTag(search)
             .switchMap {
-                // TODO Как не вызывать один и тот же объект дважды?
+                Log.d(LOG, "SearchTag: $search")
+                search = it
+                deleteAll()
+                getFromRemote(search)
+                _isError.postValue(false)
+                _isLoading.postValue(true)
                 everythingService.getArticlesBySearchTag(search)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
             }
+            .distinct()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext {
+            .subscribe({
+                articles.onNext(it)
+                articlesSearch.onNext(it)
                 Log.d(LOG, "Articles on Next: ${it.size}")
-            }
-            .doOnComplete {
-                Log.d(LOG, "Articles Completed")
-            }
-            .doOnError {
+            }, {
                 Log.e(LOG, "Articles Error: $it")
                 _isError.postValue(true)
                 _isLoading.postValue(false)
-            }
-            .doOnSubscribe {
-                Log.d(LOG, "Articles doOnSubscribe")
-                _isLoading.postValue(true)
-                _isError.postValue(false)
-            }
+            })
+    }
+
+//    val getFromRemoteTest: Maybe<retrofit2.Response<Response>> =
+//        everythingService.getFromRemote(search)
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//
+//    val articlesByTag: Flowable<List<ArticleEntity>> =
+//        everythingService.getArticlesBySearchTag(search)
+//            .switchMap {
+//                // TODO Как не вызывать один и тот же объект дважды?
+//                everythingService.getArticlesBySearchTag(search)
+//                    .subscribeOn(Schedulers.io())
+//                    .observeOn(AndroidSchedulers.mainThread())
+//            }
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .doOnNext {
+//                Log.d(LOG, "Articles on Next: ${it.size}")
+//            }
+//            .doOnComplete {
+//                Log.d(LOG, "Articles Completed")
+//            }
+//            .doOnError {
+//                Log.e(LOG, "Articles Error: $it")
+//                _isError.postValue(true)
+//                _isLoading.postValue(false)
+//            }
+//            .doOnSubscribe {
+//                Log.d(LOG, "Articles doOnSubscribe")
+//                _isLoading.postValue(true)
+//                _isError.postValue(false)
+//            }
 
     fun getFromRemote(searchTag: String) {
         val disposable = everythingService.getFromRemote(searchTag)
@@ -112,6 +127,7 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
             })
         compositeDisposable.add(disposable)
     }
+
 
     private fun insertAll(articles: List<ArticleEntity>) {
         val disposable = everythingService.insertAll(articles)
