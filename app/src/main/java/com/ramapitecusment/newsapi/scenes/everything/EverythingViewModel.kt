@@ -29,12 +29,8 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
     private val compositeDisposable = CompositeDisposable()
     var searchTag: PublishProcessor<String> = PublishProcessor.create()
     var articles: PublishProcessor<List<ArticleEntity>> = PublishProcessor.create()
-
-    //    var articlesSearch: PublishProcessor<List<ArticleEntity>> = PublishProcessor.create()
-//    var articlesDynamic: PublishProcessor<List<ArticleEntity>> = PublishProcessor.create()
     var pageObservable: PublishProcessor<Int> = PublishProcessor.create()
 
-//    val getFromRemoteBySearchTagAndPage: Disposable
     val getFromRemoteBySearchTagAndPage: Flowable<retrofit2.Response<Response>>
 
     private var search = QUERY_DEFAULT
@@ -65,53 +61,43 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
         get() = _isPageLoading
 
     init {
-//        searchTag
-//            .switchMap {
-//                Log.d(LOG, "SearchTag: $search - $page")
-//                search = it
-////                getFromRemote(search, page)
-//                _isError.postValue(false)
-//                _isLoading.postValue(true)
-//                everythingService.getArticlesBySearchTag(search)
-//                    .subscribeOn(Schedulers.io())
-//                    .observeOn(AndroidSchedulers.mainThread()).onBackpressureBuffer()
-//            }
-//            .distinct()
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({
-//                articles.onNext(it)
-////                articlesSearch.onNext(it)
-//                Log.d(LOG, "searchTag Articles on Next: ${it.size}")
-//            }, {
-//                Log.e(LOG, "searchTag Articles Error: $it")
-//                _isError.postValue(true)
-//                _isLoading.postValue(false)
-//            })
-//
-//        pageObservable
-//            .switchMap {
-//                Log.d(LOG, "pageObservable: $search - $page")
-//                page = it
-//                _isError.postValue(false)
-//                _isPageLoading.postValue(true)
-////                getFromRemote(search, page)
-//                everythingService.getArticlesBySearchTag(search)
-//                    .subscribeOn(Schedulers.io())
-//                    .observeOn(AndroidSchedulers.mainThread())
-//            }
-//            .distinct()
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({
-//                articles.onNext(it)
-////                articlesDynamic.onNext(it)
-//                Log.d(LOG, "pageObservable Articles on Next: ${it.size}")
-//            }, {
-//                Log.e(LOG, "pageObservable Articles Error: $it")
-//                _isError.postValue(true)
-//                _isLoading.postValue(false)
-//            })
+        searchTag
+            .switchMap {
+                Log.d(LOG, "SearchTag: $search - $page")
+                search = it
+                _isError.postValue(false)
+                _isLoading.postValue(true)
+                everythingService.getArticlesBySearchTag(search)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread()).onBackpressureBuffer()
+            }
+            .distinct()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                articles.onNext(it)
+                Log.d(LOG, "searchTag Articles on Next: ${it.size}")
+            }, {
+                Log.e(LOG, "searchTag Articles Error: $it")
+                _isError.postValue(true)
+                _isLoading.postValue(false)
+            })
+
+        pageObservable
+            .distinct()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                Log.d(LOG, "pageObservable: $search - $page")
+                page = it
+                _isError.postValue(false)
+                _isPageLoading.postValue(true)
+            }, {
+                Log.e(LOG, "pageObservable Error: $it")
+                _isError.postValue(true)
+                _isLoading.postValue(false)
+                _isPageLoading.postValue(false)
+            })
 
         getFromRemoteBySearchTagAndPage =
             combineLatest(searchTag, pageObservable) { t1, t2 ->
@@ -153,67 +139,7 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
                 .doOnComplete {
                     Log.d(LOG, "Internet Completed")
                 }
-//                .subscribe()
     }
-
-//    private fun getFromRemoteMaybe(search: String, page: Int): Maybe<retrofit2.Response<Response>> =
-//        everythingService.getFromRemote(search, page)
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//
-//    val articlesByTag: Flowable<List<ArticleEntity>> =
-//        everythingService.getArticlesBySearchTag(search)
-//            .switchMap {
-//                // TODO Как не вызывать один и тот же объект дважды?
-//                everythingService.getArticlesBySearchTag(search)
-//                    .subscribeOn(Schedulers.io())
-//                    .observeOn(AndroidSchedulers.mainThread())
-//            }
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .doOnNext {
-//                Log.d(LOG, "Articles on Next: ${it.size}")
-//            }
-//            .doOnComplete {
-//                Log.d(LOG, "Articles Completed")
-//            }
-//            .doOnError {
-//                Log.e(LOG, "Articles Error: $it")
-//                _isError.postValue(true)
-//                _isLoading.postValue(false)
-//            }
-//            .doOnSubscribe {
-//                Log.d(LOG, "Articles doOnSubscribe")
-//                _isLoading.postValue(true)
-//                _isError.postValue(false)
-//            }
-
-//    fun getFromRemote(searchTag: String, page: Int) {
-//        val disposable = everythingService.getFromRemote(searchTag, page)
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({
-//                Log.d(LOG, "getFromRemote Response: $it")
-//                if (it.isSuccessful) {
-//                    _isInternetError.postValue(false)
-//                    it.body()?.let { body ->
-//                        Log.d(LOG, "isSuccessful Response: ${body.articles?.size}")
-//                        body.articles?.toArticleEntity(searchTag)?.let { it1 -> insertAll(it1) }
-//                    }
-//                } else {
-//                    if (page == 1) {
-//                        _isError.postValue(true)
-//                        _isLoading.postValue(false)
-//                    }
-//                }
-//            }, {
-//                Log.e(LOG, "Internet Error: $it")
-//                _isInternetError.postValue(true)
-//            }, {
-//                Log.d(LOG, "Internet Completed")
-//            })
-//        compositeDisposable.add(disposable)
-//    }
 
     private fun insertAll(articles: List<ArticleEntity>) {
         val disposable = everythingService.insertAll(articles)
@@ -255,7 +181,6 @@ class EverythingViewModel(private val everythingService: EverythingService) : Vi
     override fun onCleared() {
         super.onCleared()
         deleteAll()
-//        getFromRemoteBySearchTagAndPage.dispose()
         // Using dispose will clear all and set isDisposed = true, so it will not accept any new disposable
         compositeDisposable.dispose()
     }

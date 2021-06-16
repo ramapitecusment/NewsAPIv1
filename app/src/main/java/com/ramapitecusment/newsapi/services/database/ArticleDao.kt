@@ -57,7 +57,7 @@ interface ArticleDao {
     fun getAllTopHeadlines(): Flowable<List<ArticleTopHeadline>>
 
     @Query("SELECT * FROM top_headlines_table WHERE country =:country")
-    fun getArticlesByTopHeadline(country: String): Flowable<List<ArticleTopHeadline>>
+    fun getTopHeadlinesByCountry(country: String): Flowable<List<ArticleTopHeadline>>
 
 
 //  ################################################################################################

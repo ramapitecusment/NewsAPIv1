@@ -70,8 +70,8 @@ fun Article.toArticleTopHeadline(country: String): ArticleTopHeadline = ArticleT
     country = country
 )
 
-fun List<Article>.toArticleTopHeadline(country: String): List<ArticleEntity> {
+fun List<Article>.toArticleTopHeadline(country: String): List<ArticleTopHeadline> {
     return this.map {
-        it.toArticleEntity(country)
+        it.toArticleTopHeadline(country)
     }
 }

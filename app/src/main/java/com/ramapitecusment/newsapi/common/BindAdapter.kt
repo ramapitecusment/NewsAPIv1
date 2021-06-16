@@ -52,33 +52,33 @@ fun bindImage(image: ImageView, imgUrl: String?, progressBar: ProgressBar) {
     }
 }
 
-@BindingAdapter("setDataToRV", "textViewId")
-fun setDataToRV(
-    recyclerView: RecyclerView,
-    flowable: Flowable<List<ArticleEntity>>,
-    noData: TextView
-) {
-    flowable
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe({ data ->
-            data?.let {
-                if (it.isNotEmpty()) {
-                    Log.d(LOG, "setDataToRV: ${it.size}")
-                    val adapter = recyclerView.adapter as? NewsRecyclerViewAdapter
-                    adapter?.submitList(it)
-                    recyclerView.visibility = View.VISIBLE
-                    noData.visibility = View.GONE
-                } else {
-                    recyclerView.visibility = View.GONE
-                    noData.visibility = View.VISIBLE
-                }
-            }
-        }, {
-            Log.d(LOG, "Error setDataToRV: $it")
-            recyclerView.visibility = View.GONE
-            noData.visibility = View.VISIBLE
-        }, {
-
-        })
-}
+//@BindingAdapter("setDataToRV", "textViewId")
+//fun setDataToRV(
+//    recyclerView: RecyclerView,
+//    flowable: Flowable<List<ArticleEntity>>,
+//    noData: TextView
+//) {
+//    flowable
+//        .subscribeOn(Schedulers.io())
+//        .observeOn(AndroidSchedulers.mainThread())
+//        .subscribe({ data ->
+//            data?.let {
+//                if (it.isNotEmpty()) {
+//                    Log.d(LOG, "setDataToRV: ${it.size}")
+//                    val adapter = recyclerView.adapter as? NewsRecyclerViewAdapter
+//                    adapter?.submitList(it)
+//                    recyclerView.visibility = View.VISIBLE
+//                    noData.visibility = View.GONE
+//                } else {
+//                    recyclerView.visibility = View.GONE
+//                    noData.visibility = View.VISIBLE
+//                }
+//            }
+//        }, {
+//            Log.d(LOG, "Error setDataToRV: $it")
+//            recyclerView.visibility = View.GONE
+//            noData.visibility = View.VISIBLE
+//        }, {
+//
+//        })
+//}

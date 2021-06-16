@@ -7,10 +7,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.ramapitecusment.newsapi.databinding.NewsItemBinding
+import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 
-class NewsRecyclerViewAdapter(private val clickListener: (articleEntity: ArticleEntity) -> Unit) :
-    ListAdapter<ArticleEntity, NewsRecyclerViewAdapter.ViewHolder>(NewsCallback()) {
+class NewsRecyclerViewAdapter(private val clickListener: (article: Article) -> Unit) :
+    ListAdapter<Article, NewsRecyclerViewAdapter.ViewHolder>(NewsCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder.from(parent)
@@ -22,9 +23,10 @@ class NewsRecyclerViewAdapter(private val clickListener: (articleEntity: Article
     }
 
     class ViewHolder(private val binding: NewsItemBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(articleEntity: ArticleEntity) {
+        fun bind(article: Article) {
             Log.d(LOG, "Recycler View Adapter bind: ")
-            binding.article = articleEntity
+            binding.readLaterImage.bringToFront()
+            binding.article = article
             binding.executePendingBindings()
         }
 
@@ -36,12 +38,12 @@ class NewsRecyclerViewAdapter(private val clickListener: (articleEntity: Article
     }
 }
 
-class NewsCallback : DiffUtil.ItemCallback<ArticleEntity>() {
-    override fun areItemsTheSame(oldItem: ArticleEntity, newItem: ArticleEntity): Boolean {
+class NewsCallback : DiffUtil.ItemCallback<Article>() {
+    override fun areItemsTheSame(oldItem: Article, newItem: Article): Boolean {
         return oldItem == newItem
     }
 
-    override fun areContentsTheSame(oldItem: ArticleEntity, newItem: ArticleEntity): Boolean {
+    override fun areContentsTheSame(oldItem: Article, newItem: Article): Boolean {
         return oldItem.id == newItem.id
     }
 }

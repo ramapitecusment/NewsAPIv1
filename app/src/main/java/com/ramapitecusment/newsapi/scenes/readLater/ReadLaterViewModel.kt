@@ -1,4 +1,7 @@
 package com.ramapitecusment.newsapi.scenes.readLater
 
-class ReadLaterViewModel {
+import androidx.lifecycle.ViewModel
+import com.ramapitecusment.newsapi.services.readLater.ReadLaterService
+
+class ReadLaterViewModel(private val readLaterService: ReadLaterService) : ViewModel() {
 }

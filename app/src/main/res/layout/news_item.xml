@@ -7,7 +7,7 @@
 
         <variable
             name="article"
-            type="com.ramapitecusment.newsapi.services.database.ArticleEntity" />
+            type="com.ramapitecusment.newsapi.services.database.Article" />
     </data>
 
     <RelativeLayout
@@ -73,6 +73,15 @@
                         android:textStyle="bold"
                         tool:text="Richard Wolf" />
 
+                    <ImageView
+                        android:id="@+id/read_later_image"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="end"
+                        android:layout_margin="14dp"
+                        android:contentDescription="@string/read_later_image"
+                        tool:src="@drawable/ic_bookmark_white" />
+
                 </FrameLayout>
 
                 <TextView
@@ -132,18 +141,7 @@
                         tool:text="8 hours ago" />
 
                 </LinearLayout>
-
             </LinearLayout>
-
-            <ImageView
-                android:id="@+id/read_later_image"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="end"
-                android:layout_margin="14dp"
-                android:contentDescription="@string/read_later_image"
-                tool:src="@drawable/ic_bookmark_white" />
-
         </androidx.cardview.widget.CardView>
     </RelativeLayout>
 </layout>

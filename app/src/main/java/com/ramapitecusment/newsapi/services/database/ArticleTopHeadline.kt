@@ -3,6 +3,7 @@ package com.ramapitecusment.newsapi.services.database
 import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.ramapitecusment.newsapi.services.network.toArticleEntity
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -20,3 +21,20 @@ data class ArticleTopHeadline(
     val urlToImage: String?,
     val country: String?
 ) : Parcelable
+
+fun ArticleTopHeadline.toArticle(): Article = Article(
+    author = author,
+    content = content,
+    description = description,
+    publishedAt = publishedAt,
+    source = source,
+    title = title,
+    url = url,
+    urlToImage = urlToImage
+)
+
+fun List<ArticleTopHeadline>.toArticle(): List<Article> {
+    return this.map {
+        it.toArticle()
+    }
+}

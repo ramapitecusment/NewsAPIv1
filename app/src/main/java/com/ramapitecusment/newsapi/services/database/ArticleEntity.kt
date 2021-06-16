@@ -21,3 +21,20 @@ data class ArticleEntity(
     val searchTag: String?
 ) : Parcelable
 
+fun ArticleEntity.toArticle(): Article = Article(
+    author = author,
+    content = content,
+    description = description,
+    publishedAt = publishedAt,
+    source = source,
+    title = title,
+    url = url,
+    urlToImage = urlToImage
+)
+
+fun List<ArticleEntity>.toArticle(): List<Article> {
+    return this.map {
+        it.toArticle()
+    }
+}
+

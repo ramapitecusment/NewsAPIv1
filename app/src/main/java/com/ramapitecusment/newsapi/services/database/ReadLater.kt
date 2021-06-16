@@ -19,3 +19,20 @@ data class ReadLater(
     val url: String,
     val urlToImage: String
 ) : Parcelable
+
+fun ReadLater.toArticle(): Article = Article(
+    author = author,
+    content = content,
+    description = description,
+    publishedAt = publishedAt,
+    source = source,
+    title = title,
+    url = url,
+    urlToImage = urlToImage
+)
+
+fun List<ReadLater>.toArticle(): List<Article> {
+    return this.map {
+        it.toArticle()
+    }
+}
