@@ -1,29 +1,17 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
-import android.util.Log
-import android.util.TimeUtils
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import com.ramapitecusment.newsapi.common.LOG
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.NetworkInfo
+import android.os.Build
+import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
 import com.ramapitecusment.newsapi.common.mvvm.*
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.everything.EverythingService
-import com.ramapitecusment.newsapi.services.network.Response
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Flowable.combineLatest
-import io.reactivex.rxjava3.core.Maybe
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.processors.PublishProcessor
-import io.reactivex.rxjava3.processors.ReplayProcessor
-import io.reactivex.rxjava3.schedulers.Schedulers
-import retrofit2.Retrofit
-import java.util.concurrent.TimeUnit
 
 
 class EverythingViewModel(private val service: EverythingService) : BaseViewModel() {
@@ -31,14 +19,133 @@ class EverythingViewModel(private val service: EverythingService) : BaseViewMode
     var articles = DataList<ArticleEntity>()
     var page = Data(1)
 
+    val loadingVisible = Visible(false)
+    val errorVisible = Visible(false)
+    val internetErrorVisible = Visible(false)
+    val pageLoadingVisible = Visible(false)
+    val recyclerViewVisible = Visible(false)
+
+    fun init() {
+        initDatabaseFlowable()
+        if (isInternetAvailable(MainApplication.instance)) {
+            showLog("Connected to internet")
+            getFromRemote()
+        } else {
+            showErrorLog("There os no Internet connection")
+        }
+    }
+
+    fun searchButtonClicked() {
+
+    }
+
+    fun onTextChanged() {
+
+    }
+
+    private fun isInternetAvailable(context: Context): Boolean {
+        var result = false
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val networkCapabilities = connectivityManager.activeNetwork ?: return false
+            val actNw =
+                connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+            result = when {
+                actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+                else -> false
+            }
+        } else {
+            connectivityManager.run {
+                @Suppress("DEPRECATION")
+                connectivityManager.activeNetworkInfo?.run {
+                    result = when (type) {
+                        ConnectivityManager.TYPE_WIFI -> true
+                        ConnectivityManager.TYPE_MOBILE -> true
+                        ConnectivityManager.TYPE_ETHERNET -> true
+                        else -> false
+                    }
+
+                }
+            }
+        }
+        return result
+    }
+
+    private fun initDatabaseFlowable() {
+        Flowable.just(searchTag.value)
+            .switchMap { search ->
+                service.getArticlesBySearchTag(search)
+                    .subscribeOnIoObserveMain()
+                    .doOnNext {
+                        showLog("OnNext getArticlesBySearchTag: ${it.size}")
+                    }
+                    .doOnError {
+                        showErrorLog("Error getArticlesBySearchTag: $it")
+                    }
+                    .doOnCancel {
+                        showLog("Cancel getArticlesBySearchTag")
+                    }
+                    .doOnComplete {
+                        showLog("Complete getArticlesBySearchTag")
+                    }
+            }
+    }
+
+    private fun getFromRemote() {
+        service.getFromRemote(searchTag.value, page.value).subscribeOnIoObserveMain()
+            .doOnSuccess { response ->
+                if (response.isSuccessful) {
+                    showLog("Get from remote success: ${response.body()?.articles?.size}")
+                    response.body()?.articles?.let { insertAll(it.toArticleEntity(searchTag.value)) }
+                } else {
+                    showErrorLog("Got error from the server: $response")
+                }
+            }
+            .doOnError { error ->
+                showErrorLog("Error getFromRemote: $error")
+            }
+            .doOnComplete {
+                showLog("Complete getFromRemote")
+            }
+            .subscribe().addToSubscription()
+    }
+
+    private fun insertAll(articles: List<ArticleEntity>) {
+        service.insertAll(articles).subscribeOnIoObserveMain()
+            .doOnComplete {
+                showLog("Insert Complete")
+            }
+            .doOnError { error ->
+                showErrorLog("Insert error: $error")
+            }
+            .subscribe().addToSubscription()
+    }
+
+    fun deleteAll() {
+        service.deleteAll().subscribeOnIoObserveMain()
+            .doOnComplete {
+                showLog("Delete success")
+            }
+            .doOnError { error ->
+                showErrorLog("Delete error: $error")
+            }
+            .subscribe().addToSubscription()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // TODO Когда необходимо вызвать stop() и destroy()
+        destroy()
+    }
+}
+
+
 //    val getFromRemoteBySearchTagAndPage: Flowable<retrofit2.Response<Response>>
 
-    val isLoading = Visible(false)
-    val isError = Visible(false)
-    val isInternetError = Visible(false)
-    val isPageLoading = Visible(false)
-
-    //    init {
+//    init {
 //        searchTag
 //            .switchMap {
 //                Log.d(LOG, "SearchTag: $search - $page")
@@ -113,68 +220,3 @@ class EverythingViewModel(private val service: EverythingService) : BaseViewMode
 //                }
 //    }
 //
-
-    init {
-        Flowable.just()
-        service.getArticlesBySearchTag(searchTag.value)
-            .subscribeOnIoObserveMain()
-            .doOnNext {
-                showLog("OnNext getArticlesBySearchTag: ${it.size}")
-            }
-            .doOnError {
-                showLog("Error getArticlesBySearchTag: $it")
-            }
-            .doOnCancel {
-                showLog("Cancel getArticlesBySearchTag")
-            }
-            .doOnComplete {
-                showLog("Complete getArticlesBySearchTag")
-            }
-    }
-
-    private fun getFromRemote() {
-        service.getFromRemote(searchTag.value, page.value).subscribeOnIoObserveMain()
-            .doOnSuccess { responce ->
-                if (responce.isSuccessful) {
-                    showLog("Get from remote success: ${responce.body()?.articles?.size}")
-                } else {
-                    showErrorLog("Got error from the server: $responce")
-                }
-            }
-            .doOnError { error ->
-                showErrorLog("Error getFromRemote: $error")
-            }
-            .doOnComplete {
-                showLog("Complete getFromRemote")
-            }
-            .subscribe().addToSubscription()
-    }
-
-    private fun insertAll(articles: List<ArticleEntity>) {
-        service.insertAll(articles).subscribeOnIoObserveMain()
-            .doOnComplete {
-                showLog("Insert Complete")
-            }
-            .doOnError { error ->
-                showErrorLog("Insert error: $error")
-            }
-            .subscribe().addToSubscription()
-    }
-
-    fun deleteAll() {
-        service.deleteAll().subscribeOnIoObserveMain()
-            .doOnComplete {
-                showLog("Delete success")
-            }
-            .doOnError { error ->
-                showErrorLog("Delete error: $error")
-            }
-            .subscribe().addToSubscription()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        // TODO Когда необходимо вызвать stop() и destroy()
-        destroy()
-    }
-}

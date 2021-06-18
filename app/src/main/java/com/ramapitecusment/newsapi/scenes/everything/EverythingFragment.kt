@@ -1,9 +1,12 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
 import android.os.Bundle
+import android.text.Editable
 import android.text.TextUtils
+import android.text.TextWatcher
 import android.util.Log
 import android.view.*
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +15,7 @@ import com.jakewharton.rxbinding4.widget.textChanges
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.NewsRecyclerViewAdapter
+import com.ramapitecusment.newsapi.common.bindVisible
 import com.ramapitecusment.newsapi.common.mvvm.BaseFragment
 import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
 import com.ramapitecusment.newsapi.services.database.Article
@@ -49,15 +53,37 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setAdapter()
-//        setSearchButtonListener()
-//        setSearchViewListener()
-//        setLoadModeListener()
-//        isLoadingListener()
-//        isErrorListener()
-//        isInternetErrorListener()
-//        isPageLoadingListener()
-//        setArticles()
+
+        initViews()
+        bindViewModel()
+
+        viewModel.init()
+    }
+
+    private fun bindViewModel() {
+        binding.newsSearch.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                viewModel.onTextChanged()
+            }
+        })
+
+        binding.buttonSearch.setOnClickListener {
+            viewModel.searchButtonClicked()
+        }
+    }
+
+    private fun initViews() {
+        bindVisible(viewModel.loadingVisible, binding.newsLayout.progressbar)
+        bindVisible(viewModel.errorVisible, binding.newsLayout.tvNoArticle)
+        bindVisible(viewModel.internetErrorVisible, binding.newsLayout.tvInternetProblems)
+        bindVisible(viewModel.pageLoadingVisible, binding.newsLayout.scrollProgressbar)
+        bindVisible(viewModel.recyclerViewVisible, binding.newsLayout.newsRecyclerView)
     }
 
 //    private fun setArticles() {
