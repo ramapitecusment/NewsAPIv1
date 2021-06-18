@@ -1,147 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tool="http://schemas.android.com/tools">
+    xmlns:tool="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
-    <data>
-
-        <variable
-            name="article"
-            type="com.ramapitecusment.newsapi.services.database.Article" />
-    </data>
-
-    <RelativeLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_13sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_13sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        app:cardCornerRadius="@dimen/_8sdp"
+        app:cardElevation="@dimen/_10sdp">
 
-        <androidx.cardview.widget.CardView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_13sdp"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginEnd="@dimen/_13sdp"
-            android:layout_marginBottom="@dimen/_10sdp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?android:attr/selectableItemBackground"
-            app:cardCornerRadius="@dimen/_8sdp"
-            app:cardElevation="@dimen/_10sdp">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/news_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_150sdp"
+                    android:contentDescription="@string/news_image"
+                    android:scaleType="centerCrop"
+                    tool:src="@drawable/demo_news" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bottom_shadow"
+                    android:contentDescription="@string/top_to_bottom_shadow" />
+
+                <ProgressBar
+                    android:id="@+id/progressbar"
+                    style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center" />
+
+                <TextView
+                    android:id="@+id/author"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_margin="@dimen/_12sdp"
+                    android:fontFamily="sans-serif-light"
+                    android:textAppearance="?attr/textAppearanceOverline"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_10sdp"
+                    android:textStyle="bold"
+                    tool:text="Richard Wolf" />
+
+                <ImageView
+                    android:id="@+id/read_later_image"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="end"
+                    android:layout_margin="14dp"
+                    android:contentDescription="@string/read_later_image"
+                    tool:src="@drawable/ic_bookmark_white" />
+
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-light"
+                android:padding="@dimen/_5sdp"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textSize="@dimen/_12sdp"
+                android:textStyle="bold"
+                tool:text="@string/title" />
+
+            <TextView
+                android:id="@+id/description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-light"
+                android:paddingHorizontal="@dimen/_5sdp"
+                android:textSize="@dimen/_10sdp"
+                tool:text="@string/description" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <ImageView
-                        android:id="@+id/news_image"
-                        bindImage="@{article.urlToImage}"
-                        progressBar="@{progressbar}"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/_150sdp"
-                        android:contentDescription="@string/news_image"
-                        android:scaleType="centerCrop"
-                        tool:src="@drawable/demo_news" />
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bottom_shadow"
-                        android:contentDescription="@string/top_to_bottom_shadow" />
-
-                    <ProgressBar
-                        android:id="@+id/progressbar"
-                        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center" />
-
-                    <TextView
-                        android:id="@+id/author"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="bottom"
-                        android:layout_margin="@dimen/_12sdp"
-                        android:fontFamily="sans-serif-light"
-                        android:text="@{article.author}"
-                        android:textAppearance="?attr/textAppearanceOverline"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/_10sdp"
-                        android:textStyle="bold"
-                        tool:text="Richard Wolf" />
-
-                    <ImageView
-                        android:id="@+id/read_later_image"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="end"
-                        android:layout_margin="14dp"
-                        android:contentDescription="@string/read_later_image"
-                        tool:src="@drawable/ic_bookmark_white" />
-
-                </FrameLayout>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/_5sdp">
 
                 <TextView
-                    android:id="@+id/title"
-                    android:layout_width="match_parent"
+                    android:id="@+id/source"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-light"
-                    android:padding="@dimen/_5sdp"
-                    android:text="@{article.title}"
-                    android:textAppearance="?attr/textAppearanceHeadline6"
+                    android:textAppearance="?attr/textAppearanceBody1"
+                    android:textColor="@color/black"
                     android:textSize="@dimen/_12sdp"
                     android:textStyle="bold"
-                    tool:text="@string/title" />
+                    tool:text="USA Today" />
 
                 <TextView
-                    android:id="@+id/description"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/_3sdp"
+                    android:text="@string/Interpunct"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/time"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-light"
-                    android:paddingHorizontal="@dimen/_5sdp"
-                    android:text="@{article.description}"
-                    android:textSize="@dimen/_10sdp"
-                    tool:text="@string/description" />
+                    tool:text="8 hours ago" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="@dimen/_5sdp">
-
-                    <TextView
-                        android:id="@+id/source"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-light"
-                        android:text="@{article.source}"
-                        android:textAppearance="?attr/textAppearanceBody1"
-                        android:textColor="@color/black"
-                        android:textSize="@dimen/_12sdp"
-                        android:textStyle="bold"
-                        tool:text="USA Today" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginHorizontal="@dimen/_3sdp"
-                        android:text="@string/Interpunct"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/time"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-light"
-                        android:text="@{article.publishedAt}"
-                        tool:text="8 hours ago" />
-
-                </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
-    </RelativeLayout>
-</layout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>

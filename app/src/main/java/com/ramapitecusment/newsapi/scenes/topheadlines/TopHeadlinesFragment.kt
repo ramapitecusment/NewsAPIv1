@@ -57,7 +57,6 @@ class TopHeadlinesFragment : Fragment() {
         setInterval()
         setArticles()
 
-
         viewModel.pageObservable.onNext(pageNumber)
         viewModel.countryObservable.onNext(COUNTRY_DEFAULT_VALUE)
     }
@@ -79,9 +78,7 @@ class TopHeadlinesFragment : Fragment() {
 
     private fun setArticles() {
         val disposable: Disposable = viewModel.articles
-            .concatMapIterable { v -> v }
             .distinct()
-            .toList()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ data ->
@@ -128,15 +125,15 @@ class TopHeadlinesFragment : Fragment() {
             }
         })
 
-        val result = viewModel.getFromRemoteByCountryAndPage
-            .onBackpressureBuffer()
-            .doOnNext {
-                Log.d(LOG, "setLoadModeListener page: $pageNumber")
-                isPageLoading = false
-                binding.scrollProgressbar.visibility = View.VISIBLE
-            }.subscribe()
-
-        compositeDisposable.add(result)
+//        val result = viewModel.getFromRemoteByCountryAndPage
+//            .onBackpressureBuffer()
+//            .doOnNext {
+//                Log.d(LOG, "setLoadModeListener page: $pageNumber")
+//                isPageLoading = false
+//                binding.scrollProgressbar.visibility = View.VISIBLE
+//            }.subscribe()
+//
+//        compositeDisposable.add(result)
     }
 
     private fun isInternetErrorListener() {

@@ -21,27 +21,17 @@ class TopHeadlinesService(
 
     fun getFromRemote(country: String, page: Int): Maybe<retrofit2.Response<Response>> =
         api.getTopHeadlinesRemote(country, API_KEY_VALUE, PAGE_SIZE_VALUE, page)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
-    fun insertAll(articles: List<ArticleTopHeadline>): Maybe<List<Long>> =
+    fun insertAll(articles: List<ArticleTopHeadline>): Completable =
         dao.insertAllTopHeadlines(articles)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
     fun getAll(): Flowable<List<ArticleTopHeadline>> =
         dao.getAllTopHeadlines()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
     fun getAllByCountry(country: String): Flowable<List<ArticleTopHeadline>> =
         dao.getTopHeadlinesByCountry(country)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
     fun deleteAll(): Completable =
         dao.deleteAllTopHeadlines()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
 }

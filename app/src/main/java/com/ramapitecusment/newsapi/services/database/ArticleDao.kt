@@ -1,5 +1,6 @@
 package com.ramapitecusment.newsapi.services.database
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
@@ -14,16 +15,16 @@ interface ArticleDao {
 //  ################################################################################################
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertArticle(article: ArticleEntity): Maybe<Long>
+    fun insertArticle(article: ArticleEntity): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAllArticles(articles: List<ArticleEntity>): Maybe<List<Long>>
+    fun insertAllArticles(articles: List<ArticleEntity>): Completable
 
     @Update
-    fun updateArticle(article: ArticleEntity): Maybe<Int>
+    fun updateArticle(article: ArticleEntity): Completable
 
     @Delete
-    fun deleteArticle(article: ArticleEntity): Maybe<Int>
+    fun deleteArticle(article: ArticleEntity): Completable
 
     @Query("DELETE FROM news_table")
     fun deleteAllArticles(): Completable
@@ -39,16 +40,16 @@ interface ArticleDao {
 //  ################################################################################################
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertTopHeadline(topHeadline: ArticleTopHeadline): Maybe<Long>
+    fun insertTopHeadline(topHeadline: ArticleTopHeadline): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAllTopHeadlines(topHeadlines: List<ArticleTopHeadline>): Maybe<List<Long>>
+    fun insertAllTopHeadlines(topHeadlines: List<ArticleTopHeadline>): Completable
 
     @Update
-    fun updateTopHeadline(topHeadline: ArticleTopHeadline): Maybe<Int>
+    fun updateTopHeadline(topHeadline: ArticleTopHeadline): Completable
 
     @Delete
-    fun deleteTopHeadline(topHeadline: ArticleTopHeadline): Maybe<Int>
+    fun deleteTopHeadline(topHeadline: ArticleTopHeadline): Completable
 
     @Query("DELETE FROM top_headlines_table")
     fun deleteAllTopHeadlines(): Completable
@@ -65,20 +66,20 @@ interface ArticleDao {
 //  ################################################################################################
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertReadLater(readLater: ReadLater): Maybe<Long>
+    fun insertReadLater(readLater: ReadLater): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAllReadLater(topHeadlines: List<ArticleTopHeadline>): Maybe<List<Long>>
+    fun insertAllReadLater(topHeadlines: List<ArticleTopHeadline>): Completable
 
     @Update
-    fun updateReadLater(readLater: ReadLater): Maybe<Int>
+    fun updateReadLater(readLater: ReadLater): Completable
 
     @Delete
-    fun deleteReadLater(readLater: ReadLater): Maybe<Int>
+    fun deleteReadLater(readLater: ReadLater): Completable
 
     @Query("DELETE FROM read_later_table")
     fun deleteAllReadLater(): Completable
 
     @Query("SELECT * FROM read_later_table")
-    fun getAllReadLater(): Flowable<List<ReadLater>>
+    fun getAllReadLater(): LiveData<List<ReadLater>>
 }

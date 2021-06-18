@@ -5,17 +5,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayoutMediator
+import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.databinding.FragmentNewsBinding
 import com.ramapitecusment.newsapi.common.TabLayoutAdapter
 
-class NewsFragment : Fragment() {
-    private lateinit var binding: FragmentNewsBinding
-
-    override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, sIS: Bundle?): View {
-        binding = FragmentNewsBinding.inflate(inflater)
-        return binding.root
-    }
+class NewsFragment : Fragment(R.layout.fragment_news) {
+    private val binding: FragmentNewsBinding by viewBinding()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

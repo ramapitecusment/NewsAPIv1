@@ -20,27 +20,16 @@ class EverythingService(
 ) {
     fun getFromRemote(searchTag: String, page: Int): Maybe<retrofit2.Response<Response>> =
         api.getEverythingRemote(searchTag, API_KEY_VALUE, PAGE_SIZE_VALUE, page)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
-    fun insertAll(articles: List<ArticleEntity>): Maybe<List<Long>> =
+    fun insertAll(articles: List<ArticleEntity>): Completable =
         dao.insertAllArticles(articles)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
     fun getAll(): Flowable<List<ArticleEntity>> =
         dao.getAllArticles()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
     fun getArticlesBySearchTag(searchTag: String): Flowable<List<ArticleEntity>> =
         dao.getArticlesBySearchTag(searchTag)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
 
-    fun deleteAll(): Completable =
-        dao.deleteAllArticles()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+    fun deleteAll(): Completable = dao.deleteAllArticles()
 
 }

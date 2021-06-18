@@ -25,7 +25,7 @@ class TopHeadlinesViewModel(private val service: TopHeadlinesService) : ViewMode
     var pageObservable: PublishProcessor<Int> = PublishProcessor.create()
     var countryObservable: PublishProcessor<String> = PublishProcessor.create()
 
-    val getFromRemoteByCountryAndPage: Flowable<retrofit2.Response<Response>>
+//    val getFromRemoteByCountryAndPage: Flowable<retrofit2.Response<Response>>
 
     private var page = 1
     private var country = COUNTRY_DEFAULT_VALUE
@@ -91,63 +91,63 @@ class TopHeadlinesViewModel(private val service: TopHeadlinesService) : ViewMode
             })
 
 
-        getFromRemoteByCountryAndPage = Flowable
-            .combineLatest(countryObservable, pageObservable) { t1, t2 ->
-                country = t1
-                page = t2
-                service.getFromRemote(t1, t2)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-            }.switchMap {
-                it.toFlowable()
-            }
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext {
-                Log.d(LOG, "getFromRemote Response: $it")
-                if (it.isSuccessful) {
-                    _isInternetError.postValue(false)
-                    it.body()?.let { body ->
-                        Log.d(LOG, "isSuccessful Response: ${body.articles?.size}")
-                        body.articles?.toArticleTopHeadline(country)?.let { it1 -> insertAll(it1) }
-                    }
-                } else {
-                    if (page == 1) {
-                        _isError.postValue(true)
-                        _isLoading.postValue(false)
-                    }
-                }
-            }
-            .doOnError {
-                Log.e(LOG, "Internet Error: $it")
-                _isInternetError.postValue(true)
-            }
-            .doOnComplete {
-                Log.d(LOG, "Internet Completed")
-            }
+//        getFromRemoteByCountryAndPage = Flowable
+//            .combineLatest(countryObservable, pageObservable) { t1, t2 ->
+//                country = t1
+//                page = t2
+//                service.getFromRemote(t1, t2)
+//                    .subscribeOn(Schedulers.io())
+//                    .observeOn(AndroidSchedulers.mainThread())
+//            }.switchMap {
+//                it.toFlowable()
+//            }
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .doOnNext {
+//                Log.d(LOG, "getFromRemote Response: $it")
+//                if (it.isSuccessful) {
+//                    _isInternetError.postValue(false)
+//                    it.body()?.let { body ->
+//                        Log.d(LOG, "isSuccessful Response: ${body.articles?.size}")
+//                        body.articles?.toArticleTopHeadline(country)?.let { it1 -> insertAll(it1) }
+//                    }
+//                } else {
+//                    if (page == 1) {
+//                        _isError.postValue(true)
+//                        _isLoading.postValue(false)
+//                    }
+//                }
+//            }
+//            .doOnError {
+//                Log.e(LOG, "Internet Error: $it")
+//                _isInternetError.postValue(true)
+//            }
+//            .doOnComplete {
+//                Log.d(LOG, "Internet Completed")
+//            }
     }
 
-    private fun insertAll(articles: List<ArticleTopHeadline>) {
-        val disposable = service.insertAll(articles)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Log.d(LOG, "Insert success: $it")
-                if (it.isEmpty()) {
-                    if (page == 1) {
-                        _isError.postValue(true)
-                        _isLoading.postValue(false)
-                    } else if (page != 1) {
-
-                    }
-                }
-            }, {
-                Log.e(LOG, "Insert error: $it")
-            }, {
-                Log.d(LOG, "Insert complete")
-            })
-        compositeDisposable.add(disposable)
-    }
+//    private fun insertAll(articles: List<ArticleTopHeadline>) {
+//        val disposable = service.insertAll(articles)
+//            .subscribeOn(Schedulers.io())
+//            .observeOn(AndroidSchedulers.mainThread())
+//            .subscribe({
+//                Log.d(LOG, "Insert success: $it")
+//                if (it.isEmpty()) {
+//                    if (page == 1) {
+//                        _isError.postValue(true)
+//                        _isLoading.postValue(false)
+//                    } else if (page != 1) {
+//
+//                    }
+//                }
+//            }, {
+//                Log.e(LOG, "Insert error: $it")
+//            }, {
+//                Log.d(LOG, "Insert complete")
+//            })
+//        compositeDisposable.add(disposable)
+//    }
 
     fun deleteAll() {
         val disposable = service.deleteAll()
