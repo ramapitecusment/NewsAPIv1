@@ -35,7 +35,7 @@ android {
     }
 
     buildFeatures {
-        dataBinding true
+        viewBinding true
     }
 }
 
@@ -58,17 +58,19 @@ dependencies {
     // GSON
     implementation 'com.google.code.gson:gson:2.8.7'
 
+    // ViewBinding
+    implementation 'com.github.kirich1409:viewbindingpropertydelegate:1.4.6'
+
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
 
     // Room
+    implementation "androidx.room:room-ktx:$room_version"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-rxjava3:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
-    // optional - Kotlin Extensions and Coroutines support for Room
-    implementation "androidx.room:room-ktx:$room_version"
 
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
@@ -87,7 +89,7 @@ dependencies {
     // Koin
     implementation "io.insert-koin:koin-android:$koin_version"
 
-    // RxJava
+    // RxJava 3
     implementation "io.reactivex.rxjava3:rxjava:3.0.13"
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
 

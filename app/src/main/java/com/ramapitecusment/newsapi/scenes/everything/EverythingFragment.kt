@@ -13,9 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.jakewharton.rxbinding4.widget.textChanges
 import com.ramapitecusment.newsapi.R
-import com.ramapitecusment.newsapi.common.LOG
-import com.ramapitecusment.newsapi.common.NewsRecyclerViewAdapter
-import com.ramapitecusment.newsapi.common.bindVisible
+import com.ramapitecusment.newsapi.common.*
 import com.ramapitecusment.newsapi.common.mvvm.BaseFragment
 import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
 import com.ramapitecusment.newsapi.services.database.Article
@@ -38,13 +36,7 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
     override val viewModel: EverythingViewModel by viewModel()
     private val binding: FragmentEverythingBinding by viewBinding()
     private lateinit var adapter: NewsRecyclerViewAdapter
-    private var isNetworkError = false
 
-    private var pageNumber = 1
-    private var isPageLoading = false
-    private var lastVisibleItem = -1
-    private var totalItemCount = -1
-    private val VISIBLE_THRESHOLD = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,27 +47,8 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
         super.onViewCreated(view, savedInstanceState)
 
         initViews()
-        bindViewModel()
 
         viewModel.init()
-    }
-
-    private fun bindViewModel() {
-        binding.newsSearch.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.onTextChanged()
-            }
-        })
-
-        binding.buttonSearch.setOnClickListener {
-            viewModel.searchButtonClicked()
-        }
     }
 
     private fun initViews() {
@@ -84,7 +57,46 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
         bindVisible(viewModel.internetErrorVisible, binding.newsLayout.tvInternetProblems)
         bindVisible(viewModel.pageLoadingVisible, binding.newsLayout.scrollProgressbar)
         bindVisible(viewModel.recyclerViewVisible, binding.newsLayout.newsRecyclerView)
+
+        bindTextTwoWay(viewModel.searchTag, binding.newsSearch)
+        bindRecyclerViewAdapter(viewModel.articles, binding.newsLayout.newsRecyclerView, NewsRecyclerViewAdapter(clickListener))
     }
+
+    private fun setAdapter() {
+        adapter = NewsRecyclerViewAdapter(clickListener)
+        binding.newsLayout.newsRecyclerView.adapter = adapter
+    }
+
+    private val clickListener: (article: Article) -> Unit = { article ->
+//        navigateToArticleDetails(article)
+    }
+
+    private fun deleteAll() {
+        viewModel.deleteAll()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_everythig, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.delete -> {
+                deleteAll()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    //    private var isNetworkError = false
+//
+//    private var pageNumber = 1
+//    private var isPageLoading = false
+//    private var lastVisibleItem = -1
+//    private var totalItemCount = -1
+//    private val VISIBLE_THRESHOLD = 1
 
 //    private fun setArticles() {
 //        val result = viewModel.articles
@@ -178,106 +190,4 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
 //            viewModel.pageObservable.onNext(pageNumber)
 //        }
 //    }
-
-    private fun isInternetErrorListener() {
-        viewModel.isInternetError.observe(viewLifecycleOwner) { isInternetError ->
-            Log.e(LOG, "isNetworkErrorListener: $isInternetError")
-            isNetworkError = isInternetError
-            if (isInternetError) {
-                binding.newsLayout.newsRecyclerView.visibility = View.GONE
-                binding.newsLayout.tvNoArticle.visibility = View.GONE
-                binding.newsLayout.tvInternetProblems.visibility = View.VISIBLE
-                binding.newsLayout.progressbar.visibility = View.GONE
-                binding.newsLayout.scrollProgressbar.visibility = View.GONE
-            } else {
-                binding.newsLayout.tvInternetProblems.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun isErrorListener() {
-        viewModel.isError.observe(viewLifecycleOwner) { isError ->
-            Log.e(LOG, "isErrorListener: $isError")
-            if (isError) {
-                binding.newsLayout.newsRecyclerView.visibility = View.GONE
-                binding.newsLayout.tvNoArticle.visibility = View.VISIBLE
-                binding.newsLayout.progressbar.visibility = View.GONE
-                binding.newsLayout.tvInternetProblems.visibility = View.GONE
-                binding.newsLayout.scrollProgressbar.visibility = View.GONE
-            } else {
-                binding.newsLayout.tvNoArticle.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun isLoadingListener() {
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            Log.d(LOG, "isLoadingListener: $isLoading")
-            if (isLoading) {
-                binding.newsLayout.newsRecyclerView.visibility = View.GONE
-                binding.newsLayout.tvNoArticle.visibility = View.GONE
-                binding.newsLayout.tvInternetProblems.visibility = View.GONE
-                binding.newsLayout.scrollProgressbar.visibility = View.GONE
-                binding.newsLayout.progressbar.visibility = View.VISIBLE
-            } else {
-                binding.newsLayout.progressbar.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun isPageLoadingListener() {
-        viewModel.isPageLoading.observe(viewLifecycleOwner) { isPageLoading ->
-            Log.d(LOG, "isPageLoading: $isPageLoading")
-            this.isPageLoading = isPageLoading
-            if (isPageLoading) {
-                binding.newsLayout.newsRecyclerView.visibility = View.VISIBLE
-                binding.newsLayout.tvNoArticle.visibility = View.GONE
-                binding.newsLayout.tvInternetProblems.visibility = View.GONE
-                binding.newsLayout.scrollProgressbar.visibility = View.VISIBLE
-                binding.newsLayout.progressbar.visibility = View.GONE
-            } else {
-                binding.newsLayout.scrollProgressbar.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun setAdapter() {
-        adapter = NewsRecyclerViewAdapter(clickListener)
-        binding.newsLayout.newsRecyclerView.adapter = adapter
-    }
-
-    private fun recyclerViewNoData() {
-        binding.newsLayout.tvNoArticle.visibility = View.VISIBLE
-        binding.newsLayout.newsRecyclerView.visibility = View.GONE
-        binding.newsLayout.newsRecyclerView.visibility = View.GONE
-    }
-
-    private val clickListener: (article: Article) -> Unit = { article ->
-//        navigateToArticleDetails(article)
-    }
-
-    private fun deleteAll() {
-        viewModel.deleteAll()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_everythig, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.delete -> {
-                deleteAll()
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
-        viewModel.destroy()
-    }
 }

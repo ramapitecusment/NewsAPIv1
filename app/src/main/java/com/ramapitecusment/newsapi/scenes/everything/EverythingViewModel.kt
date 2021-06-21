@@ -8,6 +8,7 @@ import android.os.Build
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
 import com.ramapitecusment.newsapi.common.mvvm.*
+import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.everything.EverythingService
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
@@ -16,7 +17,8 @@ import io.reactivex.rxjava3.core.Flowable
 
 class EverythingViewModel(private val service: EverythingService) : BaseViewModel() {
     var searchTag = Text(QUERY_DEFAULT)
-    var articles = DataList<ArticleEntity>()
+    var articlesEntity = DataList<ArticleEntity>()
+    var articles = DataList<Article>()
     var page = Data(1)
 
     val loadingVisible = Visible(false)
@@ -31,16 +33,121 @@ class EverythingViewModel(private val service: EverythingService) : BaseViewMode
             showLog("Connected to internet")
             getFromRemote()
         } else {
+            internetErrorState()
             showErrorLog("There os no Internet connection")
         }
     }
 
-    fun searchButtonClicked() {
-
+    private fun initDatabaseFlowable() {
+        Flowable.just(searchTag.value)
+            .switchMap { search ->
+                service.getArticlesBySearchTag(search)
+                    .subscribeOnIoObserveMain()
+                    .doOnNext {
+                        showLog("OnNext getArticlesBySearchTag: ${it.size}")
+                    }
+                    .doOnError {
+                        showErrorLog("Error getArticlesBySearchTag: $it")
+                    }
+                    .doOnCancel {
+                        showLog("Cancel getArticlesBySearchTag")
+                    }
+                    .doOnComplete {
+                        showLog("Complete getArticlesBySearchTag")
+                    }
+            }.subscribe().addToSubscription()
     }
 
-    fun onTextChanged() {
+    private fun getFromRemote() {
+        service.getFromRemote(searchTag.value, page.value).subscribeOnIoObserveMain()
+            .doOnSuccess { response ->
+                if (response.isSuccessful) {
+                    showLog("Get from remote success: ${response.body()?.articles?.size}")
+                    response.body()?.articles?.let { insertAll(it.toArticleEntity(searchTag.value)) }
+                } else {
+                    showErrorLog("Got error from the server: $response")
+                    errorState()
+                }
+            }
+            .doOnError { error ->
+                showErrorLog("Error getFromRemote: $error")
+                internetErrorState()
+            }
+            .doOnComplete {
+                showLog("Complete getFromRemote")
+            }
+            .doOnSubscribe {
+                loadingState()
+            }
+            .subscribe().addToSubscription()
+    }
 
+    private fun insertAll(articles: List<ArticleEntity>) {
+        service.insertAll(articles).subscribeOnIoObserveMain()
+            .doOnComplete {
+                showLog("Insert Complete")
+            }
+            .doOnError { error ->
+                showErrorLog("Insert error: $error")
+            }
+            .subscribe().addToSubscription()
+    }
+
+    fun deleteAll() {
+        service.deleteAll().subscribeOnIoObserveMain()
+            .doOnComplete {
+                showLog("Delete success")
+            }
+            .doOnError { error ->
+                showErrorLog("Delete error: $error")
+            }
+            .subscribe().addToSubscription()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // TODO Когда необходимо вызвать stop() и destroy()
+        destroy()
+    }
+
+    private fun successState() {
+        recyclerViewVisible.mutableValue = true
+        errorVisible.mutableValue = false
+        loadingVisible.mutableValue = false
+        internetErrorVisible.mutableValue = false
+        pageLoadingVisible.mutableValue = false
+    }
+
+    private fun pageLoadingState() {
+        pageLoadingVisible.mutableValue = true
+        recyclerViewVisible.mutableValue = true
+        errorVisible.mutableValue = false
+        loadingVisible.mutableValue = false
+        internetErrorVisible.mutableValue = false
+    }
+
+    private fun loadingState() {
+        loadingVisible.mutableValue = true
+        internetErrorVisible.mutableValue = false
+        errorVisible.mutableValue = false
+        pageLoadingVisible.mutableValue = false
+        recyclerViewVisible.mutableValue = false
+    }
+
+    private fun errorState() {
+        errorVisible.mutableValue = true
+        loadingVisible.mutableValue = false
+        internetErrorVisible.mutableValue = false
+        pageLoadingVisible.mutableValue = false
+        recyclerViewVisible.mutableValue = false
+    }
+
+    private fun internetErrorState() {
+        internetErrorVisible.mutableValue = true
+        loadingVisible.mutableValue = false
+        errorVisible.mutableValue = false
+        pageLoadingVisible.mutableValue = false
+        recyclerViewVisible.mutableValue = false
     }
 
     private fun isInternetAvailable(context: Context): Boolean {
@@ -72,73 +179,6 @@ class EverythingViewModel(private val service: EverythingService) : BaseViewMode
             }
         }
         return result
-    }
-
-    private fun initDatabaseFlowable() {
-        Flowable.just(searchTag.value)
-            .switchMap { search ->
-                service.getArticlesBySearchTag(search)
-                    .subscribeOnIoObserveMain()
-                    .doOnNext {
-                        showLog("OnNext getArticlesBySearchTag: ${it.size}")
-                    }
-                    .doOnError {
-                        showErrorLog("Error getArticlesBySearchTag: $it")
-                    }
-                    .doOnCancel {
-                        showLog("Cancel getArticlesBySearchTag")
-                    }
-                    .doOnComplete {
-                        showLog("Complete getArticlesBySearchTag")
-                    }
-            }
-    }
-
-    private fun getFromRemote() {
-        service.getFromRemote(searchTag.value, page.value).subscribeOnIoObserveMain()
-            .doOnSuccess { response ->
-                if (response.isSuccessful) {
-                    showLog("Get from remote success: ${response.body()?.articles?.size}")
-                    response.body()?.articles?.let { insertAll(it.toArticleEntity(searchTag.value)) }
-                } else {
-                    showErrorLog("Got error from the server: $response")
-                }
-            }
-            .doOnError { error ->
-                showErrorLog("Error getFromRemote: $error")
-            }
-            .doOnComplete {
-                showLog("Complete getFromRemote")
-            }
-            .subscribe().addToSubscription()
-    }
-
-    private fun insertAll(articles: List<ArticleEntity>) {
-        service.insertAll(articles).subscribeOnIoObserveMain()
-            .doOnComplete {
-                showLog("Insert Complete")
-            }
-            .doOnError { error ->
-                showErrorLog("Insert error: $error")
-            }
-            .subscribe().addToSubscription()
-    }
-
-    fun deleteAll() {
-        service.deleteAll().subscribeOnIoObserveMain()
-            .doOnComplete {
-                showLog("Delete success")
-            }
-            .doOnError { error ->
-                showErrorLog("Delete error: $error")
-            }
-            .subscribe().addToSubscription()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        // TODO Когда необходимо вызвать stop() и destroy()
-        destroy()
     }
 }
 

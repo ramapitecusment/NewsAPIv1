@@ -64,13 +64,13 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
         subscriptionsWhileVisible.add(this)
     }
 
-    class CheckableProperty(defaultValue: Boolean = false) : MutableBindingProperty<Boolean>(defaultValue)
-    class DataListProperty<T>(defaultValue: List<T> = emptyList()) : MutableBindingProperty<List<T>>(defaultValue)
-    class DataProperty<T>(defaultValue: T) : MutableBindingProperty<T>(defaultValue)
-    class EnabledProperty(defaultValue: Boolean = false) : MutableBindingProperty<Boolean>(defaultValue)
-    class ProgressProperty(defaultValue: Float = 0f) : MutableBindingProperty<Float>(defaultValue)
-    class TextProperty(defaultValue: String = "") : MutableBindingProperty<String>(defaultValue)
-    class VisibleProperty(defaultValue: Boolean = false) : MutableBindingProperty<Boolean>(defaultValue)
+    class CheckableProperty(value: Boolean = false) : MutableBindingProperty<Boolean>(value)
+    class DataListProperty<T>(value: List<T> = emptyList()) : MutableBindingProperty<List<T>>(value)
+    class DataProperty<T>(value: T) : MutableBindingProperty<T>(value)
+    class EnabledProperty(value: Boolean = false) : MutableBindingProperty<Boolean>(value)
+    class ProgressProperty(value: Float = 0f) : MutableBindingProperty<Float>(value)
+    class TextProperty(value: String = "") : MutableBindingProperty<String>(value)
+    class VisibleProperty(value: Boolean = false) : MutableBindingProperty<Boolean>(value)
 
     abstract class MutableBindingProperty<T>(defaultValue: T) {
         private val mutableLiveData = MutableLiveData<T>()
@@ -79,9 +79,13 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
         val value: T
             get() = liveData.value!!
 
-        init { mutableLiveData.value = defaultValue!! }
+        init {
+            mutableLiveData.value = defaultValue!!
+        }
 
-        fun observe(owner: LifecycleOwner, observer: Observer<T>) = liveData.observe(owner, observer)
+        fun observe(owner: LifecycleOwner, observer: Observer<T>) =
+            liveData.observe(owner, observer)
+
         fun observeForever(observer: (value: T) -> Unit) = liveData.observeForever { observer(it) }
     }
 
