@@ -3,13 +3,13 @@ package com.ramapitecusment.newsapi.scenes.everything
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.NetworkInfo
 import android.os.Build
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
 import com.ramapitecusment.newsapi.common.mvvm.*
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
+import com.ramapitecusment.newsapi.services.database.toArticle
 import com.ramapitecusment.newsapi.services.everything.EverythingService
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
 import io.reactivex.rxjava3.core.Flowable
@@ -41,67 +41,57 @@ class EverythingViewModel(private val service: EverythingService) : BaseViewMode
     private fun initDatabaseFlowable() {
         Flowable.just(searchTag.value)
             .switchMap { search ->
-                service.getArticlesBySearchTag(search)
-                    .subscribeOnIoObserveMain()
-                    .doOnNext {
-                        showLog("OnNext getArticlesBySearchTag: ${it.size}")
-                    }
-                    .doOnError {
-                        showErrorLog("Error getArticlesBySearchTag: $it")
-                    }
-                    .doOnCancel {
-                        showLog("Cancel getArticlesBySearchTag")
-                    }
-                    .doOnComplete {
-                        showLog("Complete getArticlesBySearchTag")
-                    }
-            }.subscribe().addToSubscription()
+                service.getArticlesBySearchTag(search).subscribeOnIoObserveMain()
+            }.subscribe(
+                {
+                    articles.mutableValue = it.toArticle()
+                    successState()
+                    showLog("OnNext getArticlesBySearchTag: ${it.size}")
+                }, {
+                    showErrorLog("Error getArticlesBySearchTag: $it")
+                }, {
+                    showLog("Complete getArticlesBySearchTag")
+                }
+            ).addToSubscription()
     }
 
     private fun getFromRemote() {
         service.getFromRemote(searchTag.value, page.value).subscribeOnIoObserveMain()
-            .doOnSuccess { response ->
-                if (response.isSuccessful) {
-                    showLog("Get from remote success: ${response.body()?.articles?.size}")
-                    response.body()?.articles?.let { insertAll(it.toArticleEntity(searchTag.value)) }
-                } else {
-                    showErrorLog("Got error from the server: $response")
-                    errorState()
-                }
-            }
-            .doOnError { error ->
-                showErrorLog("Error getFromRemote: $error")
-                internetErrorState()
-            }
-            .doOnComplete {
-                showLog("Complete getFromRemote")
-            }
-            .doOnSubscribe {
-                loadingState()
-            }
-            .subscribe().addToSubscription()
+            .subscribe(
+                { response ->
+                    if (response.isSuccessful) {
+                        showLog("Get from remote success: ${response.body()?.articles?.size}")
+                        response.body()?.articles?.let { insertAll(it.toArticleEntity(searchTag.value)) }
+                    } else {
+                        showErrorLog("Got error from the server: $response")
+                        errorState()
+                    }
+                }, { error ->
+                    showErrorLog("Error getFromRemote: $error")
+                    internetErrorState()
+                }, {
+                    showLog("Complete getFromRemote")
+                }).addToSubscription()
     }
 
     private fun insertAll(articles: List<ArticleEntity>) {
         service.insertAll(articles).subscribeOnIoObserveMain()
-            .doOnComplete {
-                showLog("Insert Complete")
-            }
-            .doOnError { error ->
-                showErrorLog("Insert error: $error")
-            }
-            .subscribe().addToSubscription()
+            .subscribe(
+                {
+                    showLog("Insert Complete")
+                }, { error ->
+                    showErrorLog("Insert error: $error")
+                }).addToSubscription()
     }
 
     fun deleteAll() {
         service.deleteAll().subscribeOnIoObserveMain()
-            .doOnComplete {
-                showLog("Delete success")
-            }
-            .doOnError { error ->
-                showErrorLog("Delete error: $error")
-            }
-            .subscribe().addToSubscription()
+            .subscribe(
+                {
+                    showLog("Delete success")
+                }, { error ->
+                    showErrorLog("Delete error: $error")
+                }).addToSubscription()
     }
 
     override fun onCleared() {

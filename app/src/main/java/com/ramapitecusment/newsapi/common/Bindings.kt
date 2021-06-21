@@ -35,13 +35,11 @@ fun LifecycleOwner.bindText(liveData: Text, textView: TextView) =
 fun LifecycleOwner.bindMenuItemVisibility(liveData: Visible, menuItem: MenuItem) =
     liveData.observe(this, { menuItem.isVisible = it })
 
-fun <T> LifecycleOwner.bindRecyclerViewAdapter(
+fun <T, TViewHolder : RecyclerView.ViewHolder?> LifecycleOwner.bindRecyclerViewAdapter(
     lifeData: DataList<T>,
-    recyclerView: RecyclerView,
-    adapter: ListAdapter<T, RecyclerView.ViewHolder>
+    adapter: ListAdapter<T, TViewHolder>
 ) =
     lifeData.observe(this) {
-        recyclerView.adapter = adapter
         adapter.submitList(it)
     }
 

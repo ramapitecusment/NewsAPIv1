@@ -7,12 +7,14 @@ import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.COUNTRY_DEFAULT_VALUE
 import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.NewsRecyclerViewAdapter
 import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
 import com.ramapitecusment.newsapi.databinding.FragmentTopHeadlinesBinding
+import com.ramapitecusment.newsapi.databinding.NewsItemBinding
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.database.toArticle
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeUnit
 class TopHeadlinesFragment : Fragment() {
     private val compositeDisposable = CompositeDisposable()
     private val viewModel by viewModel<TopHeadlinesViewModel>()
+    private val recyclerViewBinding: NewsItemBinding by viewBinding()
     private lateinit var binding: FragmentTopHeadlinesBinding
     private lateinit var adapter: NewsRecyclerViewAdapter
     private var isNetworkError = false
@@ -48,7 +51,7 @@ class TopHeadlinesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setAdapter()
+        initViews()
         setLoadModeListener()
         isLoadingListener()
         isErrorListener()
@@ -59,6 +62,17 @@ class TopHeadlinesFragment : Fragment() {
 
         viewModel.pageObservable.onNext(pageNumber)
         viewModel.countryObservable.onNext(COUNTRY_DEFAULT_VALUE)
+    }
+
+    private fun initViews() {
+        adapter = NewsRecyclerViewAdapter(
+            clickListener,
+            R.layout.news_item,
+            { old, new -> old.id == new.id },
+            { old, new -> old == new }
+        )
+
+        binding.newsRecyclerView.adapter = adapter
     }
 
     private fun setInterval() {
@@ -196,11 +210,6 @@ class TopHeadlinesFragment : Fragment() {
                 binding.scrollProgressbar.visibility = View.GONE
             }
         }
-    }
-
-    private fun setAdapter() {
-        adapter = NewsRecyclerViewAdapter(clickListener)
-        binding.newsRecyclerView.adapter = adapter
     }
 
     private val clickListener: (article: Article) -> Unit = { article ->

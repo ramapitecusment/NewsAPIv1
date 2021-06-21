@@ -1,42 +1,23 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextUtils
-import android.text.TextWatcher
-import android.util.Log
 import android.view.*
-import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.jakewharton.rxbinding4.widget.textChanges
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.*
 import com.ramapitecusment.newsapi.common.mvvm.BaseFragment
 import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
+import com.ramapitecusment.newsapi.databinding.NewsItemBinding
 import com.ramapitecusment.newsapi.services.database.Article
-import com.ramapitecusment.newsapi.services.database.ArticleEntity
-import com.ramapitecusment.newsapi.services.database.toArticle
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.processors.PublishProcessor
-import io.reactivex.rxjava3.schedulers.Schedulers
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.*
-import java.util.concurrent.TimeUnit
 
 
 class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_everything) {
-    private val compositeDisposable = CompositeDisposable()
-
     override val viewModel: EverythingViewModel by viewModel()
     private val binding: FragmentEverythingBinding by viewBinding()
+    private val recyclerViewBinding: NewsItemBinding by viewBinding()
     private lateinit var adapter: NewsRecyclerViewAdapter
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,13 +26,23 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initViews()
-
+        bindViewModel()
         viewModel.init()
     }
 
     private fun initViews() {
+        adapter = NewsRecyclerViewAdapter(
+            clickListener,
+//            recyclerViewBinding,
+            R.layout.news_item,
+            { old, new -> old.id == new.id },
+            { old, new -> old == new }
+        )
+        binding.newsLayout.newsRecyclerView.adapter = adapter
+    }
+
+    private fun bindViewModel() {
         bindVisible(viewModel.loadingVisible, binding.newsLayout.progressbar)
         bindVisible(viewModel.errorVisible, binding.newsLayout.tvNoArticle)
         bindVisible(viewModel.internetErrorVisible, binding.newsLayout.tvInternetProblems)
@@ -59,12 +50,7 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
         bindVisible(viewModel.recyclerViewVisible, binding.newsLayout.newsRecyclerView)
 
         bindTextTwoWay(viewModel.searchTag, binding.newsSearch)
-        bindRecyclerViewAdapter(viewModel.articles, binding.newsLayout.newsRecyclerView, NewsRecyclerViewAdapter(clickListener))
-    }
-
-    private fun setAdapter() {
-        adapter = NewsRecyclerViewAdapter(clickListener)
-        binding.newsLayout.newsRecyclerView.adapter = adapter
+        bindRecyclerViewAdapter(viewModel.articles, adapter)
     }
 
     private val clickListener: (article: Article) -> Unit = { article ->
