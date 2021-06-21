@@ -16,7 +16,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_everything) {
     override val viewModel: EverythingViewModel by viewModel()
     private val binding: FragmentEverythingBinding by viewBinding()
-    private val recyclerViewBinding: NewsItemBinding by viewBinding()
     private lateinit var adapter: NewsRecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +33,6 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
     private fun initViews() {
         adapter = NewsRecyclerViewAdapter(
             clickListener,
-//            recyclerViewBinding,
             R.layout.news_item,
             { old, new -> old.id == new.id },
             { old, new -> old == new }

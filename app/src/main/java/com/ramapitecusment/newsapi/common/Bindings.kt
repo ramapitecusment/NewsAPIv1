@@ -1,16 +1,27 @@
 package com.ramapitecusment.newsapi.common
 
+import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.annotation.GlideOption
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.Target
+import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.mvvm.BaseViewModel
 import com.ramapitecusment.newsapi.common.mvvm.DataList
 
@@ -85,3 +96,66 @@ private var <T> BaseViewModel.MutableBindingProperty<T>.mutableValue: T
     set(value) {
         (liveData as MutableLiveData<T>).value = value
     }
+
+@GlideOption
+fun Glide.bindImage(urlToImage: String?, image: ImageView, progressbar: ProgressBar) {
+    urlToImage?.let {
+        Glide.with(image.context)
+            .load(it)
+            .apply(RequestOptions().error(R.drawable.ic_connection_error))
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    progressbar.visibility = View.GONE
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    dataSource: DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    progressbar.visibility = View.GONE
+                    return false
+                }
+            })
+            .into(image)
+    }
+}
+
+fun ImageView.glideImage(urlToImage: String?, image: ImageView, progressbar: ProgressBar) {
+    urlToImage?.let {
+        Glide.with(image.context)
+            .load(it)
+            .apply(RequestOptions().error(R.drawable.ic_connection_error))
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    progressbar.visibility = View.GONE
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    dataSource: DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    progressbar.visibility = View.GONE
+                    return false
+                }
+            })
+            .into(image)
+    }
+}
