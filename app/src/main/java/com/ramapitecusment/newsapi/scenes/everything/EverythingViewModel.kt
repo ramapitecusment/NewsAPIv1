@@ -4,22 +4,28 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.text.TextUtils
 import com.ramapitecusment.newsapi.MainApplication
-import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
 import com.ramapitecusment.newsapi.common.mvvm.*
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.database.toArticle
 import com.ramapitecusment.newsapi.services.everything.EverythingService
+import com.ramapitecusment.newsapi.services.network.Response
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
 import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.subjects.PublishSubject
 
 
 class EverythingViewModel(private val service: EverythingService) : BaseViewModel() {
-    var searchTag = Text(QUERY_DEFAULT)
-    var articlesEntity = DataList<ArticleEntity>()
-    var articles = DataList<Article>()
+    var searchTag = Text()
     var page = Data(1)
+    var articles = DataList<Article>()
+    var searchTagRX: PublishSubject<String> = PublishSubject.create()
+    var pageRx: PublishSubject<Int> = PublishSubject.create()
+
+    val isLoadingPage = Visible(false)
 
     val loadingVisible = Visible(false)
     val errorVisible = Visible(false)
@@ -27,36 +33,50 @@ class EverythingViewModel(private val service: EverythingService) : BaseViewMode
     val pageLoadingVisible = Visible(false)
     val recyclerViewVisible = Visible(false)
 
-    fun init() {
-        initDatabaseFlowable()
+//    val getFromRemoteBySearchTagAndPage: Observable<ArrayList<ArticleEntity>>
+
+    init {
         if (isInternetAvailable(MainApplication.instance)) {
             showLog("Connected to internet")
-            getFromRemote()
         } else {
             internetErrorState()
             showErrorLog("There os no Internet connection")
         }
-    }
 
-    private fun initDatabaseFlowable() {
-        Flowable.just(searchTag.value)
-            .switchMap { search ->
-                service.getArticlesBySearchTag(search).subscribeOnIoObserveMain()
-            }.subscribe(
-                {
-                    articles.mutableValue = it.toArticle()
+        Observable.combineLatest(
+
+            searchTagRX.filter { charSequence ->
+                showLog("before filter rxSearch -$charSequence- ${internetErrorVisible.value}")
+                !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
+            }
+                .map { it.toString() }
+                .distinctUntilChanged(),
+
+            pageRx.doOnNext { showLog("doOnNext pageRx: $it") }) { t1, t2 ->
+
+            getFromRemote()
+            service.getArticlesBySearchTag(t1).subscribeOnIoObserveMain()
+        }
+            .switchMap { it.toObservable() }
+            .distinct()
+            .subscribeOnIoObserveMain()
+            .subscribe({
+                isLoadingPage.mutableValue = false
+                if (it.isNotEmpty()) {
+                    articles.mutableValue = it.toArticle().distinct()
                     successState()
-                    showLog("OnNext getArticlesBySearchTag: ${it.size}")
-                }, {
-                    showErrorLog("Error getArticlesBySearchTag: $it")
-                }, {
-                    showLog("Complete getArticlesBySearchTag")
                 }
-            ).addToSubscription()
+            }, {
+                showErrorLog("Error getArticlesBySearchTag: it")
+            })
+            .addToSubscription()
     }
 
     private fun getFromRemote() {
-        service.getFromRemote(searchTag.value, page.value).subscribeOnIoObserveMain()
+        service.getFromRemote(searchTag.value, page.value).subscribeOnSingleObserveMain()
+            .doOnSubscribe {
+                pageLoadingState()
+            }
             .subscribe(
                 { response ->
                     if (response.isSuccessful) {
@@ -92,6 +112,23 @@ class EverythingViewModel(private val service: EverythingService) : BaseViewMode
                 }, { error ->
                     showErrorLog("Delete error: $error")
                 }).addToSubscription()
+    }
+
+    fun searchButtonClicked() {
+        getFromRemote()
+        resetPageValue()
+    }
+
+    fun resetPageValue() {
+        loadingState()
+        page.mutableValue = 1
+        pageRx.onNext(1)
+    }
+
+    fun increasePageValue(_page: Int) {
+        pageRx.onNext(_page)
+        page.mutableValue = _page
+        isLoadingPage.mutableValue = true
     }
 
     override fun onCleared() {

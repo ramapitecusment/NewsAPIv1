@@ -51,17 +51,17 @@ class TopHeadlinesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initViews()
-        setLoadModeListener()
-        isLoadingListener()
-        isErrorListener()
-        isInternetErrorListener()
-        isPageLoadingListener()
-        setInterval()
-        setArticles()
-
-        viewModel.pageObservable.onNext(pageNumber)
-        viewModel.countryObservable.onNext(COUNTRY_DEFAULT_VALUE)
+//        initViews()
+//        setLoadModeListener()
+//        isLoadingListener()
+//        isErrorListener()
+//        isInternetErrorListener()
+//        isPageLoadingListener()
+//        setInterval()
+//        setArticles()
+//
+//        viewModel.pageObservable.onNext(pageNumber)
+//        viewModel.countryObservable.onNext(COUNTRY_DEFAULT_VALUE)
     }
 
     private fun initViews() {

@@ -2,7 +2,9 @@ package com.ramapitecusment.newsapi.common
 
 import android.graphics.drawable.Drawable
 import android.text.Editable
+import android.text.TextUtils
 import android.text.TextWatcher
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
@@ -12,6 +14,7 @@ import android.widget.TextView
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -21,12 +24,20 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
+import com.jakewharton.rxbinding4.widget.textChanges
 import com.ramapitecusment.newsapi.R
-import com.ramapitecusment.newsapi.common.mvvm.BaseViewModel
-import com.ramapitecusment.newsapi.common.mvvm.DataList
+import com.ramapitecusment.newsapi.common.mvvm.*
 
-import com.ramapitecusment.newsapi.common.mvvm.Text
-import com.ramapitecusment.newsapi.common.mvvm.Visible
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Scheduler
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.PublishSubject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import java.util.concurrent.TimeUnit
 
 fun LifecycleOwner.bindVisible(liveData: Visible, view: View, asInvisible: Boolean = false) =
     liveData.observe(this, {
@@ -43,6 +54,12 @@ fun LifecycleOwner.bindTitle(liveData: Text, toolbar: androidx.appcompat.widget.
 fun LifecycleOwner.bindText(liveData: Text, textView: TextView) =
     liveData.observe(this, { textView.text = it })
 
+fun LifecycleOwner.bindText(liveData: Text, textView: TextView, subject: PublishSubject<String>) =
+    liveData.observe(this, {
+        textView.text = it
+        subject.onNext(it)
+    })
+
 fun LifecycleOwner.bindMenuItemVisibility(liveData: Visible, menuItem: MenuItem) =
     liveData.observe(this, { menuItem.isVisible = it })
 
@@ -53,6 +70,43 @@ fun <T, TViewHolder : RecyclerView.ViewHolder?> LifecycleOwner.bindRecyclerViewA
     lifeData.observe(this) {
         adapter.submitList(it)
     }
+
+private var <T> BaseViewModel.MutableBindingProperty<T>.mutableValue: T
+    get() = liveData.value!!
+    set(value) {
+        (liveData as MutableLiveData<T>).value = value
+    }
+
+fun ImageView.glideImage(urlToImage: String?, progressbar: ProgressBar) {
+    urlToImage?.let {
+        Glide.with(this)
+            .load(it)
+            .apply(RequestOptions().error(R.drawable.ic_connection_error))
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    progressbar.visibility = View.GONE
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    dataSource: DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    progressbar.visibility = View.GONE
+                    return false
+                }
+            })
+            .into(this)
+    }
+}
 
 fun LifecycleOwner.bindTextTwoWay(liveData: Text, editText: EditText) {
     editText.addTextChangedListener(object : TextWatcher {
@@ -91,71 +145,99 @@ fun LifecycleOwner.bindTextTwoWay(liveData: Text, editText: EditText) {
     })
 }
 
-private var <T> BaseViewModel.MutableBindingProperty<T>.mutableValue: T
-    get() = liveData.value!!
-    set(value) {
-        (liveData as MutableLiveData<T>).value = value
-    }
+fun LifecycleOwner.bindTextChange(
+    liveData: Text,
+    editText: EditText,
+    searchObservable: PublishSubject<String>,
+    pageObservable: PublishSubject<Int>
+): Disposable {
 
-@GlideOption
-fun Glide.bindImage(urlToImage: String?, image: ImageView, progressbar: ProgressBar) {
-    urlToImage?.let {
-        Glide.with(image.context)
-            .load(it)
-            .apply(RequestOptions().error(R.drawable.ic_connection_error))
-            .listener(object : RequestListener<Drawable> {
-                override fun onLoadFailed(
-                    e: GlideException?,
-                    model: Any?,
-                    target: Target<Drawable>?,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    progressbar.visibility = View.GONE
-                    return false
-                }
+    val disposable = editText.textChanges()
+        .debounce(900, TimeUnit.MILLISECONDS)
+        .filter { charSequence ->
+            !(TextUtils.isEmpty(editText.text.toString().trim { it <= ' ' }))
+        }
+        .map { it.toString() }
+        .distinctUntilChanged()
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe({
+            Log.d(LOG, "textChanges $it")
+            liveData.mutableValue = it
+            searchObservable.onNext(it)
+            pageObservable.onNext(1)
+        }, {
+            Log.e(LOG, "Error $it")
+        })
 
-                override fun onResourceReady(
-                    resource: Drawable?,
-                    model: Any?,
-                    target: Target<Drawable>?,
-                    dataSource: DataSource?,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    progressbar.visibility = View.GONE
-                    return false
-                }
-            })
-            .into(image)
-    }
+    liveData.observe(this, Observer {
+        if (editText.text.toString() == it) {
+            return@Observer
+        }
+
+        val oldSelection = editText.selectionStart
+        val newLength = it?.length ?: 0
+        val oldLength = editText.text?.length ?: 0
+        val diff = newLength - oldLength
+        editText.setText(it)
+
+        var newSelection = when (diff) {
+            1, -1 -> oldSelection + diff
+            else -> newLength
+        }
+
+        if (newSelection < 0) {
+            newSelection = 0
+        }
+
+        try {
+            editText.setSelection(newSelection)
+        } catch (e: Exception) {
+            print(e)
+        }
+    })
+
+    return disposable
 }
 
-fun ImageView.glideImage(urlToImage: String?, image: ImageView, progressbar: ProgressBar) {
-    urlToImage?.let {
-        Glide.with(image.context)
-            .load(it)
-            .apply(RequestOptions().error(R.drawable.ic_connection_error))
-            .listener(object : RequestListener<Drawable> {
-                override fun onLoadFailed(
-                    e: GlideException?,
-                    model: Any?,
-                    target: Target<Drawable>?,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    progressbar.visibility = View.GONE
-                    return false
-                }
+fun LifecycleOwner.bindPager(
+    recyclerView: RecyclerView,
+    pageLiveData: Data<Int>,
+    pageLoading: Visible,
+    pageObservable: PublishSubject<Int>
+) {
 
-                override fun onResourceReady(
-                    resource: Drawable?,
-                    model: Any?,
-                    target: Target<Drawable>?,
-                    dataSource: DataSource?,
-                    isFirstResource: Boolean
-                ): Boolean {
-                    progressbar.visibility = View.GONE
-                    return false
-                }
-            })
-            .into(image)
+    var page = 1
+    var isLoading = false
+
+    pageLiveData.observe(this) {
+        page = it
     }
+
+    pageLoading.observe(this) {
+        isLoading = it
+    }
+
+    recyclerView.addOnScrollListener(object :
+        RecyclerView.OnScrollListener() {
+
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            val totalItemCount = layoutManager.itemCount
+            val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
+            Log.d(LOG, "onScrolled: $totalItemCount - $lastVisibleItem - $isLoading")
+            if (!isLoading && totalItemCount <= (lastVisibleItem + 1)) {
+                Log.d(
+                    LOG,
+                    "onScrolled in if: $totalItemCount - $lastVisibleItem - $pageLoading"
+                )
+                pageLiveData.mutableValue.plus(1)
+                pageObservable.onNext(page)
+                Log.d(LOG, "${pageLiveData.value} ----- $page")
+                pageLoading.mutableValue = true
+            }
+        }
+    })
 }
+

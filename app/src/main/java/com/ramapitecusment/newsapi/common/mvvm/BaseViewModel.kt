@@ -43,11 +43,17 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
     protected fun <T> Maybe<T>.subscribeOnIoObserveMain() =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
+    protected fun <T> Maybe<T>.subscribeOnSingleObserveMain() =
+        this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+
     protected fun <T> Flowable<T>.subscribeOnIoObserveMain() =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
     protected fun <T> Observable<T>.subscribeOnIoObserveMain() =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+
+    protected fun <T> Observable<T>.subscribeOnSingleObserveMain() =
+        this.subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread())
 
     protected fun getString(@StringRes resId: Int, vararg formatArgs: Any): String =
         this.getApplication<Application>().getString(resId, *formatArgs)
@@ -92,6 +98,6 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
     protected var <T> MutableBindingProperty<T>.mutableValue: T
         get() = value
         set(value) {
-            (liveData as MutableLiveData<T>).value = value
+            (liveData as MutableLiveData<T>).postValue(value)
         }
 }

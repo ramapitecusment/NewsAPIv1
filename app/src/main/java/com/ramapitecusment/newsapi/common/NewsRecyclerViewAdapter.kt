@@ -23,7 +23,6 @@ import com.ramapitecusment.newsapi.services.database.Article
 
 class NewsRecyclerViewAdapter(
     private val clickListener: (article: Article) -> Unit,
-//    private val binding: NewsItemBinding,
     @LayoutRes private val layoutResId: Int,
     compareItms: (old: Article, new: Article) -> Boolean,
     compareCnts: (old: Article, new: Article) -> Boolean
@@ -63,39 +62,7 @@ class NewsRecyclerViewAdapter(
         source.text = article.source
         time.text = article.publishedAt
 
-        Glide.bindImage(article.urlToImage, newsImage, progressbar)
-        glideImage(article.urlToImage)
-    }
-
-    private fun glideImage(urlToImage: String?) {
-        urlToImage?.let {
-            Glide.with(newsImage.context)
-                .load(it)
-                .apply(RequestOptions().error(R.drawable.ic_connection_error))
-                .listener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any?,
-                        target: Target<Drawable>?,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        progressbar.visibility = View.GONE
-                        return false
-                    }
-
-                    override fun onResourceReady(
-                        resource: Drawable?,
-                        model: Any?,
-                        target: Target<Drawable>?,
-                        dataSource: DataSource?,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        progressbar.visibility = View.GONE
-                        return false
-                    }
-                })
-                .into(newsImage)
-        }
+        newsImage.glideImage(article.urlToImage, progressbar)
     }
 }
 

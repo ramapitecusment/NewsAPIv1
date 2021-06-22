@@ -1,8 +1,12 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.jakewharton.rxbinding4.widget.textChanges
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.*
 import com.ramapitecusment.newsapi.common.mvvm.BaseFragment
@@ -18,6 +22,9 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
     private val binding: FragmentEverythingBinding by viewBinding()
     private lateinit var adapter: NewsRecyclerViewAdapter
 
+    var page = 1
+    var isLoading = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -27,7 +34,7 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
         super.onViewCreated(view, savedInstanceState)
         initViews()
         bindViewModel()
-        viewModel.init()
+//        viewModel.init()
     }
 
     private fun initViews() {
@@ -38,17 +45,53 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
             { old, new -> old == new }
         )
         binding.newsLayout.newsRecyclerView.adapter = adapter
+
+        binding.buttonSearch.setOnClickListener {
+            viewModel.searchButtonClicked()
+        }
+
+        viewModel.page.observe(this) {
+            page = it
+        }
+
+        viewModel.isLoadingPage.observe(this) {
+            isLoading = it
+        }
+
+        binding.newsLayout.newsRecyclerView.addOnScrollListener(object :
+            RecyclerView.OnScrollListener() {
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val totalItemCount = layoutManager.itemCount
+                val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
+//                Log.d(LOG, "onScrolled: $totalItemCount - $lastVisibleItem - $isLoading")
+                if (!isLoading && totalItemCount <= (lastVisibleItem + 3)) {
+                    Log.d(
+                        LOG,
+                        "onScrolled in if: $totalItemCount - $lastVisibleItem - $isLoading"
+                    )
+                    viewModel.increasePageValue(page.plus(1))
+                }
+            }
+        })
     }
 
     private fun bindViewModel() {
-        bindVisible(viewModel.loadingVisible, binding.newsLayout.progressbar)
-        bindVisible(viewModel.errorVisible, binding.newsLayout.tvNoArticle)
-        bindVisible(viewModel.internetErrorVisible, binding.newsLayout.tvInternetProblems)
-        bindVisible(viewModel.pageLoadingVisible, binding.newsLayout.scrollProgressbar)
-        bindVisible(viewModel.recyclerViewVisible, binding.newsLayout.newsRecyclerView)
+        with(viewModel) {
+            with(binding) {
+                bindVisible(loadingVisible, newsLayout.progressbar)
+                bindVisible(errorVisible, newsLayout.tvNoArticle)
+                bindVisible(internetErrorVisible, newsLayout.tvInternetProblems)
+                bindVisible(pageLoadingVisible, newsLayout.scrollProgressbar)
+                bindVisible(recyclerViewVisible, newsLayout.newsRecyclerView)
 
-        bindTextTwoWay(viewModel.searchTag, binding.newsSearch)
-        bindRecyclerViewAdapter(viewModel.articles, adapter)
+                bindTextChange(searchTag, newsSearch, searchTagRX, pageRx).addToSubscription()
+                bindText(searchTag, newsSearch, searchTagRX)
+                bindRecyclerViewAdapter(articles, adapter)
+            }
+        }
     }
 
     private val clickListener: (article: Article) -> Unit = { article ->
