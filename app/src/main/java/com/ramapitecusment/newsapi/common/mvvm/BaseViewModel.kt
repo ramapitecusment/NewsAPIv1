@@ -101,7 +101,7 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
     protected var <T> MutableBindingProperty<T>.mutableValue: T
         get() = value
         set(value) {
-            (liveData as MutableLiveData<T>).postValue(value)
+            (liveData as MutableLiveData<T>).value = value
         }
 
     override fun onCleared() {
