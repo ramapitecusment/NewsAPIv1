@@ -2,6 +2,7 @@ package com.ramapitecusment.newsapi.scenes.everything
 
 import android.text.TextUtils
 import com.ramapitecusment.newsapi.MainApplication
+import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.*
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.database.toArticle
@@ -60,7 +61,12 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
             showLog(response.toString())
             if (response.isSuccessful) {
                 showLog("Get from remote success: ${response.body()?.articles?.size}")
-                response.body()?.articles?.let { insertAll(it.toArticleEntity(search)) }
+                isPageEnd.value = (response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE)
+                if (!isPageEnd.value!!) {
+                    response.body()?.articles?.let { insertAll(it.toArticleEntity(search)) }
+                } else {
+                    showLog("Get from remote success pageEnd: ${isPageEnd.value}")
+                }
             } else {
                 showErrorLog("Got error from the server: $response")
                 errorState()

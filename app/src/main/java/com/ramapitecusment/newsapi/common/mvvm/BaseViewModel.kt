@@ -34,28 +34,28 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
         subscriptions.clear()
     }
 
-    protected fun Completable.subscribeOnIoObserveMain() =
+    protected fun Completable.subscribeOnIoObserveMain(): Completable =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
-    protected fun <T> Single<T>.subscribeOnIoObserveMain() =
+    protected fun <T> Single<T>.subscribeOnIoObserveMain(): Single<T> =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
-    protected fun <T> Maybe<T>.subscribeOnIoObserveMain() =
+    protected fun <T> Maybe<T>.subscribeOnIoObserveMain(): Maybe<T> =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
-    protected fun <T> Maybe<T>.subscribeOnSingleObserveMain() =
+    protected fun <T> Maybe<T>.subscribeOnSingleObserveMain(): Maybe<T> =
         this.subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread())
 
-    protected fun <T> Flowable<T>.subscribeOnIoObserveMain() =
+    protected fun <T> Flowable<T>.subscribeOnIoObserveMain(): Flowable<T> =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
-    protected fun <T> Flowable<T>.subscribeOnSingleObserveMain() =
+    protected fun <T> Flowable<T>.subscribeOnSingleObserveMain(): Flowable<T> =
         this.subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread())
 
-    protected fun <T> Observable<T>.subscribeOnIoObserveMain() =
+    protected fun <T> Observable<T>.subscribeOnIoObserveMain(): Observable<T> =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
-    protected fun <T> Observable<T>.subscribeOnSingleObserveMain() =
+    protected fun <T> Observable<T>.subscribeOnSingleObserveMain(): Observable<T> =
         this.subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread())
 
     protected fun getString(@StringRes resId: Int, vararg formatArgs: Any): String =
