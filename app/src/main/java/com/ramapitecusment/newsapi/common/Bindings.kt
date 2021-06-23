@@ -1,9 +1,7 @@
 package com.ramapitecusment.newsapi.common
 
 import android.graphics.drawable.Drawable
-import android.text.Editable
 import android.text.TextUtils
-import android.text.TextWatcher
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
@@ -18,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.annotation.GlideOption
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
@@ -27,16 +24,10 @@ import com.bumptech.glide.request.target.Target
 import com.jakewharton.rxbinding4.widget.textChanges
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.mvvm.*
-
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.TimeUnit
 
 fun LifecycleOwner.bindVisible(liveData: Visible, view: View, asInvisible: Boolean = false) =
@@ -66,10 +57,7 @@ fun LifecycleOwner.bindMenuItemVisibility(liveData: Visible, menuItem: MenuItem)
 fun <T, TViewHolder : RecyclerView.ViewHolder?> LifecycleOwner.bindRecyclerViewAdapter(
     lifeData: DataList<T>,
     adapter: ListAdapter<T, TViewHolder>
-) =
-    lifeData.observe(this) {
-        adapter.submitList(it)
-    }
+) = lifeData.observe(this) { adapter.submitList(it) }
 
 private var <T> BaseViewModel.MutableBindingProperty<T>.mutableValue: T
     get() = liveData.value!!
@@ -108,43 +96,6 @@ fun ImageView.glideImage(urlToImage: String?, progressbar: ProgressBar) {
     }
 }
 
-fun LifecycleOwner.bindTextTwoWay(liveData: Text, editText: EditText) {
-    editText.addTextChangedListener(object : TextWatcher {
-        override fun afterTextChanged(s: Editable?) {}
-        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-            liveData.mutableValue = s?.toString() ?: ""
-        }
-    })
-
-    liveData.observe(this, Observer {
-        if (editText.text.toString() == it) {
-            return@Observer
-        }
-
-        val oldSelection = editText.selectionStart
-        val newLength = it?.length ?: 0
-        val oldLength = editText.text?.length ?: 0
-        val diff = newLength - oldLength
-        editText.setText(it)
-
-        var newSelection = when (diff) {
-            1, -1 -> oldSelection + diff
-            else -> newLength
-        }
-
-        if (newSelection < 0) {
-            newSelection = 0
-        }
-
-        try {
-            editText.setSelection(newSelection)
-        } catch (e: Exception) {
-            print(e)
-        }
-    })
-}
-
 fun LifecycleOwner.bindTextChange(
     liveData: Text,
     editText: EditText,
@@ -164,7 +115,9 @@ fun LifecycleOwner.bindTextChange(
         .subscribe({
             Log.d(LOG, "textChanges $it")
             liveData.mutableValue = it
+            // It must be first
             searchObservable.onNext(it)
+            // It must be second
             pageObservable.onNext(1)
         }, {
             Log.e(LOG, "Error $it")
@@ -202,17 +155,10 @@ fun LifecycleOwner.bindTextChange(
 
 fun LifecycleOwner.bindPager(
     recyclerView: RecyclerView,
-    pageLiveData: Data<Int>,
     pageLoading: Visible,
-    pageObservable: PublishSubject<Int>
+    changePage: () -> Unit
 ) {
-
-    var page = 1
     var isLoading = false
-
-    pageLiveData.observe(this) {
-        page = it
-    }
 
     pageLoading.observe(this) {
         isLoading = it
@@ -226,16 +172,10 @@ fun LifecycleOwner.bindPager(
             val layoutManager = recyclerView.layoutManager as LinearLayoutManager
             val totalItemCount = layoutManager.itemCount
             val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-            Log.d(LOG, "onScrolled: $totalItemCount - $lastVisibleItem - $isLoading")
-            if (!isLoading && totalItemCount <= (lastVisibleItem + 1)) {
-                Log.d(
-                    LOG,
-                    "onScrolled in if: $totalItemCount - $lastVisibleItem - $pageLoading"
-                )
-                pageLiveData.mutableValue.plus(1)
-                pageObservable.onNext(page)
-                Log.d(LOG, "${pageLiveData.value} ----- $page")
-                pageLoading.mutableValue = true
+//            Log.d(LOG, "onScrolled: $totalItemCount - $lastVisibleItem")
+            if (!isLoading && (totalItemCount <= (lastVisibleItem + 1))) {
+                Log.d(LOG, "onScrolled in if: $totalItemCount - $lastVisibleItem")
+                changePage()
             }
         }
     })

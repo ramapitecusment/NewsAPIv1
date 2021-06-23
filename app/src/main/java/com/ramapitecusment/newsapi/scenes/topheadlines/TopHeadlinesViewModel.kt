@@ -1,173 +1,232 @@
 package com.ramapitecusment.newsapi.scenes.topheadlines
 
+import android.text.TextUtils
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.common.COUNTRY_DEFAULT_VALUE
 import com.ramapitecusment.newsapi.common.LOG
+import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
+import com.ramapitecusment.newsapi.common.mvvm.BaseViewModel
+import com.ramapitecusment.newsapi.common.mvvm.Data
+import com.ramapitecusment.newsapi.common.mvvm.Text
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.database.ArticleTopHeadline
+import com.ramapitecusment.newsapi.services.database.toArticle
 import com.ramapitecusment.newsapi.services.network.Response
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
 import com.ramapitecusment.newsapi.services.network.toArticleTopHeadline
 import com.ramapitecusment.newsapi.services.topheadlines.TopHeadlinesService
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
 
-class TopHeadlinesViewModel(private val service: TopHeadlinesService) : ViewModel() {
-    private val compositeDisposable = CompositeDisposable()
-
-    var articles: PublishProcessor<List<ArticleTopHeadline>> = PublishProcessor.create()
-    var pageObservable: PublishProcessor<Int> = PublishProcessor.create()
-    var countryObservable: PublishProcessor<String> = PublishProcessor.create()
-
-//    val getFromRemoteByCountryAndPage: Flowable<retrofit2.Response<Response>>
-
-    private var page = 1
-    private var country = COUNTRY_DEFAULT_VALUE
-
-    private val _isLoading: MutableLiveData<Boolean> by lazy {
-        MutableLiveData()
-    }
-    val isLoading: LiveData<Boolean>
-        get() = _isLoading
-
-    private val _isError: MutableLiveData<Boolean> by lazy {
-        MutableLiveData()
-    }
-    val isError: LiveData<Boolean>
-        get() = _isError
-
-    private val _isInternetError: MutableLiveData<Boolean> by lazy {
-        MutableLiveData()
-    }
-    val isInternetError: LiveData<Boolean>
-        get() = _isInternetError
-
-    private val _isPageLoading: MutableLiveData<Boolean> by lazy {
-        MutableLiveData()
-    }
-    val isPageLoading: LiveData<Boolean>
-        get() = _isPageLoading
+class TopHeadlinesViewModel(private val service: TopHeadlinesService) : BaseNewsViewModel() {
+    var country = Text()
+    var page = Data(1)
+    var countryRX: PublishSubject<String> = PublishSubject.create()
 
     init {
-        countryObservable
-            .switchMap {
-                country = it
-                _isError.postValue(false)
-                _isLoading.postValue(true)
-                service.getAllByCountry(country)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-            }
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                articles.onNext(it)
-                Log.d(LOG, "searchTag Articles on Next: ${it.size}")
-            }, {
-                Log.e(LOG, "searchTag Articles Error: $it")
-                _isError.postValue(true)
-                _isLoading.postValue(false)
-            })
+        if (isInternetAvailable(MainApplication.instance)) {
+            showLog("Connected to internet")
+            countryRX.onNext("ru")
+            pageRx.onNext(1)
+            country.mutableValue = "ru"
+            loadingState()
+        } else {
+            internetErrorState()
+            showErrorLog("There os no Internet connection")
+        }
 
-        pageObservable
-            .distinct()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Log.d(LOG, "pageObservable: $country - $page")
-                page = it
-                _isError.postValue(false)
-                _isPageLoading.postValue(true)
-            }, {
-                Log.e(LOG, "pageObservable Error: $it")
-                _isError.postValue(true)
-                _isLoading.postValue(false)
-            })
-
-
-//        getFromRemoteByCountryAndPage = Flowable
-//            .combineLatest(countryObservable, pageObservable) { t1, t2 ->
-//                country = t1
-//                page = t2
-//                service.getFromRemote(t1, t2)
-//                    .subscribeOn(Schedulers.io())
-//                    .observeOn(AndroidSchedulers.mainThread())
-//            }.switchMap {
-//                it.toFlowable()
-//            }
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .doOnNext {
-//                Log.d(LOG, "getFromRemote Response: $it")
-//                if (it.isSuccessful) {
-//                    _isInternetError.postValue(false)
-//                    it.body()?.let { body ->
-//                        Log.d(LOG, "isSuccessful Response: ${body.articles?.size}")
-//                        body.articles?.toArticleTopHeadline(country)?.let { it1 -> insertAll(it1) }
+//        Observable.interval(5, TimeUnit.SECONDS)
+//            .switchMap {
+//                countryRX.onNext(country.value)
+//                pageRx.onNext(page.value)
+//                showLog("in switchmap")
+//                Observable.combineLatest(pageRx
+//                    .doOnNext { page ->
+//                        showLog("doOnNext pageRx: $page")
+//                        if (page == 1) loadingState()
+//                        else pageLoadingState()
+//                        this.page.mutableValue = page
 //                    }
-//                } else {
-//                    if (page == 1) {
-//                        _isError.postValue(true)
-//                        _isLoading.postValue(false)
+//                    .doOnEach {
+//                        showLog("doOnEach")
 //                    }
+//                    .doOnError {
+//                        showLog("doOnError $it")
+//                    }, countryRX
+//                    .filter { charSequence ->
+//                        showLog("before filter countryRX -$charSequence- ${internetErrorVisible.value}")
+//                        !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
+//                    }
+//                    .doOnNext
+//                    {
+//                        showLog("doOnNext countryRX: $it")
+//                        country.mutableValue = it
+//                    }
+//                    .map { it.toString() }
+//                    .distinctUntilChanged()
+//                ) { t1, t2 ->
+//                    showLog("withLatestFrom $t1 ---- $t2")
+//                    getFromRemote(t2, t1)
+//                    service.getAllByCountry(t2).subscribeOnIoObserveMain()
 //                }
+//                    .switchMap { it.toObservable() }
+//                    .subscribeOnIoObserveMain()
 //            }
-//            .doOnError {
-//                Log.e(LOG, "Internet Error: $it")
-//                _isInternetError.postValue(true)
+//            .distinct()
+//            .subscribeOnIoObserveMain()
+//            .subscribe(
+//                {
+//                    showLog("On Next withLatestFrom: ${it.size}")
+//                    isLoadingPage.mutableValue = false
+//                    if (it.isNotEmpty()) {
+//                        articles.mutableValue = it.toArticle().distinct()
+//                        successState()
+//                    }
+//                }, {
+//                    showErrorLog("Error getAllByCountry: it")
+//                })
+//            .addToSubscription()
+
+        Observable.interval(5, TimeUnit.SECONDS)
+            .switchMap {
+                showLog("in switchmap")
+                countryRX.onNext(country.value)
+                pageRx.onNext(page.value)
+                pageRx
+                    .doOnNext { page ->
+                        showLog("doOnNext pageRx: $page")
+                        if (page == 1) loadingState()
+                        else pageLoadingState()
+                        this.page.mutableValue = page
+                    }
+                    .doOnEach {
+                        showLog("doOnEach")
+                    }
+                    .doOnError {
+                        showLog("doOnError $it")
+                    }
+                    .withLatestFrom(countryRX
+                        .filter { charSequence ->
+                            showLog("before filter countryRX -$charSequence- ${internetErrorVisible.value}")
+                            !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
+                        }
+                        .doOnNext
+                        {
+                            showLog("doOnNext countryRX: $it")
+                            country.mutableValue = it
+                        }
+                        .map { it.toString() }
+                        .distinctUntilChanged()
+                    ) { t1, t2 ->
+                        showLog("withLatestFrom $t1 ---- $t2")
+                        getFromRemote(t2, t1)
+                        service.getAllByCountry(t2).subscribeOnIoObserveMain()
+                    }
+                    .switchMap { it.toObservable() }
+                    .subscribeOnIoObserveMain()
+            }
+            .distinct()
+            .subscribeOnIoObserveMain()
+            .subscribe(
+                {
+                    showLog("On Next withLatestFrom: ${it.size}")
+                    isLoadingPage.mutableValue = false
+                    if (it.isNotEmpty()) {
+                        articles.mutableValue = it.toArticle().distinct()
+                        successState()
+                    }
+                }, {
+                    showErrorLog("Error getAllByCountry: it")
+                })
+            .addToSubscription()
+
+//        pageRx
+//            .doOnNext { page ->
+//                showLog("doOnNext pageRx: $page")
+//                if (page == 1) loadingState()
+//                else pageLoadingState()
+//                this.page.mutableValue = page
 //            }
-//            .doOnComplete {
-//                Log.d(LOG, "Internet Completed")
+//            .withLatestFrom(countryRX
+//                .filter { charSequence ->
+//                    showLog("before filter countryRX -$charSequence- ${internetErrorVisible.value}")
+//                    !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
+//                }
+//                .doOnNext
+//                {
+//                    showLog("doOnNext countryRX: $it")
+//                    country.mutableValue = it
+//                }
+//                .map { it.toString() }
+//                .distinctUntilChanged()
+//            ) { t1, t2 ->
+//                showLog("withLatestFrom $t1 ---- $t2")
+//                getFromRemote(t2, t1)
+//                service.getAllByCountry(t2).subscribeOnIoObserveMain()
 //            }
+//            .switchMap { it.toObservable() }
+//            .distinct()
+//            .subscribeOnIoObserveMain()
+//            .subscribe(
+//                {
+//                    showLog("On Next withLatestFrom: ${it.size}")
+//                    isLoadingPage.mutableValue = false
+//                    if (it.isNotEmpty()) {
+//                        articles.mutableValue = it.toArticle().distinct()
+//                        successState()
+//                    }
+//                }, {
+//                    showErrorLog("Error getAllByCountry: it")
+//                }).addToSubscription()
     }
 
-//    private fun insertAll(articles: List<ArticleTopHeadline>) {
-//        val disposable = service.insertAll(articles)
-//            .subscribeOn(Schedulers.io())
-//            .observeOn(AndroidSchedulers.mainThread())
-//            .subscribe({
-//                Log.d(LOG, "Insert success: $it")
-//                if (it.isEmpty()) {
-//                    if (page == 1) {
-//                        _isError.postValue(true)
-//                        _isLoading.postValue(false)
-//                    } else if (page != 1) {
-//
-//                    }
-//                }
-//            }, {
-//                Log.e(LOG, "Insert error: $it")
-//            }, {
-//                Log.d(LOG, "Insert complete")
-//            })
-//        compositeDisposable.add(disposable)
-//    }
+    private fun getFromRemote(country: String, page: Int) {
+        service.getFromRemote(country, page).subscribeOnSingleObserveMain().subscribe({ response ->
+            showLog(response.toString())
+            if (response.isSuccessful) {
+                showLog("Get from remote success: ${response.body()?.articles?.size}")
+                response.body()?.articles?.let { insertAll(it.toArticleTopHeadline(country)) }
+            } else {
+                showErrorLog("Got error from the server: $response")
+                errorState()
+            }
+        }, { error ->
+            showErrorLog("Error getFromRemote: $error")
+            internetErrorState()
+        }, {
+            showLog("Complete getFromRemote")
+        }).addToSubscription()
+    }
+
+    fun increasePageValue() {
+        increasePageValueProtected()
+    }
+
+    private fun insertAll(articles: List<ArticleTopHeadline>) {
+        service.insertAll(articles).subscribeOnIoObserveMain().subscribe(
+            {
+                showLog("Insert Complete")
+            }, { error ->
+                showErrorLog("Insert error: $error")
+            }).addToSubscription()
+    }
 
     fun deleteAll() {
-        val disposable = service.deleteAll()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Log.d(LOG, "Delete success")
-            }, {
-                Log.e(LOG, "Delete error: $it")
-            })
-        compositeDisposable.add(disposable)
+        service.deleteAll().subscribeOnIoObserveMain().subscribe(
+            {
+                showLog("Delete success")
+            }, { error ->
+                showErrorLog("Delete error: $error")
+            }).addToSubscription()
     }
-
-    fun onDestroy() {
-
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        compositeDisposable.clear()
-    }
-
 }

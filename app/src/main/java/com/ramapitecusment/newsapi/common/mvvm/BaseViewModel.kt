@@ -100,4 +100,10 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
         set(value) {
             (liveData as MutableLiveData<T>).postValue(value)
         }
+
+    override fun onCleared() {
+        super.onCleared()
+        destroy()
+        showLog("Cleared")
+    }
 }

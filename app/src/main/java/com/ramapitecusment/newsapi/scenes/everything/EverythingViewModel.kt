@@ -1,39 +1,17 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
 import android.text.TextUtils
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.common.mvvm.*
-import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleEntity
 import com.ramapitecusment.newsapi.services.database.toArticle
 import com.ramapitecusment.newsapi.services.everything.EverythingService
-import com.ramapitecusment.newsapi.services.network.Response
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
-import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
-
-class EverythingViewModel(private val service: EverythingService) : BaseViewModel() {
+class EverythingViewModel(private val service: EverythingService) : BaseNewsViewModel() {
     var searchTag = Text()
-    var page = Data(1)
-    var articles = DataList<Article>()
     var searchTagRX: PublishSubject<String> = PublishSubject.create()
-    var pageRx: PublishSubject<Int> = PublishSubject.create()
-
-    val isLoadingPage = Visible(false)
-
-    val loadingVisible = Visible(false)
-    val errorVisible = Visible(false)
-    val internetErrorVisible = Visible(false)
-    val pageLoadingVisible = Visible(false)
-    val recyclerViewVisible = Visible(false)
-
-//    val getFromRemoteBySearchTagAndPage: Observable<ArrayList<ArticleEntity>>
 
     init {
         if (isInternetAvailable(MainApplication.instance)) {
@@ -43,247 +21,85 @@ class EverythingViewModel(private val service: EverythingService) : BaseViewMode
             showErrorLog("There os no Internet connection")
         }
 
-        Observable.combineLatest(
-
-            searchTagRX.filter { charSequence ->
-                showLog("before filter rxSearch -$charSequence- ${internetErrorVisible.value}")
-                !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
-            }
+        pageRx
+            .doOnNext { page ->
+                showLog("doOnNext pageRx: $page")
+                if (page == 1) loadingState()
+                else pageLoadingState()
+            }.withLatestFrom(searchTagRX
+                .filter { charSequence ->
+                    showLog("before filter rxSearch -$charSequence- ${internetErrorVisible.value}")
+                    !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
+                }
+                .doOnNext { showLog("doOnNext searchTagRX: $it") }
                 .map { it.toString() }
-                .distinctUntilChanged(),
-
-            pageRx.doOnNext { showLog("doOnNext pageRx: $it") }) { t1, t2 ->
-
-            getFromRemote()
-            service.getArticlesBySearchTag(t1).subscribeOnIoObserveMain()
-        }
+                .distinctUntilChanged()
+            ) { t1, t2 ->
+                showLog("withLatestFrom $t1 ---- $t2")
+                getFromRemote(t2, t1)
+                service.getArticlesBySearchTag(t2).subscribeOnIoObserveMain()
+            }
             .switchMap { it.toObservable() }
             .distinct()
             .subscribeOnIoObserveMain()
-            .subscribe({
-                isLoadingPage.mutableValue = false
-                if (it.isNotEmpty()) {
-                    articles.mutableValue = it.toArticle().distinct()
-                    successState()
-                }
-            }, {
-                showErrorLog("Error getArticlesBySearchTag: it")
-            })
-            .addToSubscription()
+            .subscribe(
+                {
+                    showLog("On Next combine latest: ${it.size}")
+                    isLoadingPage.mutableValue = false
+                    if (it.isNotEmpty()) {
+                        articles.mutableValue = it.toArticle().distinct()
+                        successState()
+                    }
+                }, {
+                    showErrorLog("Error getArticlesBySearchTag: it")
+                }).addToSubscription()
     }
 
-    private fun getFromRemote() {
-        service.getFromRemote(searchTag.value, page.value).subscribeOnSingleObserveMain()
-            .doOnSubscribe {
-                pageLoadingState()
+    private fun getFromRemote(search: String, page: Int) {
+        service.getFromRemote(search, page).subscribeOnSingleObserveMain().subscribe({ response ->
+            showLog(response.toString())
+            if (response.isSuccessful) {
+                showLog("Get from remote success: ${response.body()?.articles?.size}")
+                response.body()?.articles?.let { insertAll(it.toArticleEntity(search)) }
+            } else {
+                showErrorLog("Got error from the server: $response")
+                errorState()
             }
-            .subscribe(
-                { response ->
-                    if (response.isSuccessful) {
-                        showLog("Get from remote success: ${response.body()?.articles?.size}")
-                        response.body()?.articles?.let { insertAll(it.toArticleEntity(searchTag.value)) }
-                    } else {
-                        showErrorLog("Got error from the server: $response")
-                        errorState()
-                    }
-                }, { error ->
-                    showErrorLog("Error getFromRemote: $error")
-                    internetErrorState()
-                }, {
-                    showLog("Complete getFromRemote")
-                }).addToSubscription()
+        }, { error ->
+            showErrorLog("Error getFromRemote: $error")
+            internetErrorState()
+        }, {
+            showLog("Complete getFromRemote")
+        }).addToSubscription()
     }
 
     private fun insertAll(articles: List<ArticleEntity>) {
-        service.insertAll(articles).subscribeOnIoObserveMain()
-            .subscribe(
-                {
-                    showLog("Insert Complete")
-                }, { error ->
-                    showErrorLog("Insert error: $error")
-                }).addToSubscription()
+        service.insertAll(articles).subscribeOnIoObserveMain().subscribe(
+            {
+                showLog("Insert Complete")
+            }, { error ->
+                showErrorLog("Insert error: $error")
+            }).addToSubscription()
     }
 
     fun deleteAll() {
-        service.deleteAll().subscribeOnIoObserveMain()
-            .subscribe(
-                {
-                    showLog("Delete success")
-                }, { error ->
-                    showErrorLog("Delete error: $error")
-                }).addToSubscription()
+        service.deleteAll().subscribeOnIoObserveMain().subscribe(
+            {
+                showLog("Delete success")
+            }, { error ->
+                showErrorLog("Delete error: $error")
+            }).addToSubscription()
     }
 
     fun searchButtonClicked() {
-        getFromRemote()
         resetPageValue()
     }
 
-    fun resetPageValue() {
-        loadingState()
-        page.mutableValue = 1
+    private fun resetPageValue() {
         pageRx.onNext(1)
     }
 
-    fun increasePageValue(_page: Int) {
-        pageRx.onNext(_page)
-        page.mutableValue = _page
-        isLoadingPage.mutableValue = true
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        // TODO Когда необходимо вызвать stop() и destroy()
-        destroy()
-    }
-
-    private fun successState() {
-        recyclerViewVisible.mutableValue = true
-        errorVisible.mutableValue = false
-        loadingVisible.mutableValue = false
-        internetErrorVisible.mutableValue = false
-        pageLoadingVisible.mutableValue = false
-    }
-
-    private fun pageLoadingState() {
-        pageLoadingVisible.mutableValue = true
-        recyclerViewVisible.mutableValue = true
-        errorVisible.mutableValue = false
-        loadingVisible.mutableValue = false
-        internetErrorVisible.mutableValue = false
-    }
-
-    private fun loadingState() {
-        loadingVisible.mutableValue = true
-        internetErrorVisible.mutableValue = false
-        errorVisible.mutableValue = false
-        pageLoadingVisible.mutableValue = false
-        recyclerViewVisible.mutableValue = false
-    }
-
-    private fun errorState() {
-        errorVisible.mutableValue = true
-        loadingVisible.mutableValue = false
-        internetErrorVisible.mutableValue = false
-        pageLoadingVisible.mutableValue = false
-        recyclerViewVisible.mutableValue = false
-    }
-
-    private fun internetErrorState() {
-        internetErrorVisible.mutableValue = true
-        loadingVisible.mutableValue = false
-        errorVisible.mutableValue = false
-        pageLoadingVisible.mutableValue = false
-        recyclerViewVisible.mutableValue = false
-    }
-
-    private fun isInternetAvailable(context: Context): Boolean {
-        var result = false
-        val connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val networkCapabilities = connectivityManager.activeNetwork ?: return false
-            val actNw =
-                connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
-            result = when {
-                actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-                actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-                actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-                else -> false
-            }
-        } else {
-            connectivityManager.run {
-                @Suppress("DEPRECATION")
-                connectivityManager.activeNetworkInfo?.run {
-                    result = when (type) {
-                        ConnectivityManager.TYPE_WIFI -> true
-                        ConnectivityManager.TYPE_MOBILE -> true
-                        ConnectivityManager.TYPE_ETHERNET -> true
-                        else -> false
-                    }
-
-                }
-            }
-        }
-        return result
+    fun increasePageValue() {
+        increasePageValueProtected()
     }
 }
-
-
-//    val getFromRemoteBySearchTagAndPage: Flowable<retrofit2.Response<Response>>
-
-//    init {
-//        searchTag
-//            .switchMap {
-//                Log.d(LOG, "SearchTag: $search - $page")
-//                search = it
-//                _isError.postValue(false)
-//                _isLoading.postValue(true)
-//                everythingService.getArticlesBySearchTag(search)
-//                    .subscribeOnIoObserveMain()
-//            }
-//            .distinct()
-//            .subscribeOnIoObserveMain()
-//            .subscribe({
-//                articles.onNext(it)
-//                Log.d(LOG, "searchTag Articles on Next: ${it.size}")
-//            }, {
-//                Log.e(LOG, "searchTag Articles Error: $it")
-//                _isError.postValue(true)
-//                _isLoading.postValue(false)
-//            })
-//
-//        pageObservable
-//            .distinct()
-//            .subscribeOnIoObserveMain()
-//            .subscribe({
-//                Log.d(LOG, "pageObservable: $search - $page")
-//                page = it
-//                _isError.postValue(false)
-//                _isPageLoading.postValue(true)
-//            }, {
-//                Log.e(LOG, "pageObservable Error: $it")
-//                _isError.postValue(true)
-//                _isLoading.postValue(false)
-//                _isPageLoading.postValue(false)
-//            })
-//
-//        getFromRemoteBySearchTagAndPage =
-//            combineLatest(searchTag.value, pageObservable) { t1, t2 ->
-//                search = t1
-//                page = t2
-//                everythingService.getArticlesBySearchTag(t1)
-//                    .subscribeOnIoObserveMain()
-//                everythingService
-//                    .getFromRemote(t1, t2)
-//                    .subscribeOnIoObserveMain()
-//            }
-//                .switchMap {
-//                    it.toFlowable()
-//                }
-//                .distinct()
-//                .subscribeOnIoObserveMain()
-//                .doOnNext {
-//                    Log.d(LOG, "getFromRemote Response: $it")
-//                    if (it.isSuccessful) {
-//                        _isInternetError.postValue(false)
-//                        it.body()?.let { body ->
-//                            Log.d(LOG, "isSuccessful Response: ${body.articles?.size}")
-//                            body.articles?.toArticleEntity(search)?.let { it1 -> insertAll(it1) }
-//                        }
-//                    } else {
-//                        if (page == 1) {
-//                            _isError.postValue(true)
-//                            _isLoading.postValue(false)
-//                        }
-//                    }
-//                }
-//                .doOnError {
-//                    Log.e(LOG, "Internet Error: $it")
-//                    isInternetError.mutableValue = true
-//                }
-//                .doOnComplete {
-//                    Log.d(LOG, "Internet Completed")
-//                }
-//    }
-//
