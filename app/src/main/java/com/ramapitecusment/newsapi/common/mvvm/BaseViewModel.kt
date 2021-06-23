@@ -44,10 +44,13 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
     protected fun <T> Maybe<T>.subscribeOnSingleObserveMain() =
-        this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        this.subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread())
 
     protected fun <T> Flowable<T>.subscribeOnIoObserveMain() =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+
+    protected fun <T> Flowable<T>.subscribeOnSingleObserveMain() =
+        this.subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread())
 
     protected fun <T> Observable<T>.subscribeOnIoObserveMain() =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
