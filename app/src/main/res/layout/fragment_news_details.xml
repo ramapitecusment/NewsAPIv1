@@ -1,14 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".scenes.newsDetails.NewsDetailsFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-</FrameLayout>
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp">
+
+                    <ImageView
+                        android:id="@+id/news_image_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img" />
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bottom_shadow"
+                        android:scaleType="centerCrop" />
+
+                    <ProgressBar
+                        android:id="@+id/image_progress_bar"
+                        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center" />
+
+                    <ImageButton
+                        android:id="@+id/read_later_image_button"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="end"
+                        android:layout_margin="14dp"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="@string/read_later_image"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_bookmark_white" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:orientation="horizontal"
+                        android:padding="10dp">
+
+                        <TextView
+                            android:id="@+id/source_text_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="start"
+                            android:ems="15"
+                            android:fontFamily="sans-serif-light"
+                            android:textAppearance="?attr/textAppearanceBody1"
+                            android:textColor="@color/black"
+                            android:textSize="@dimen/_12sdp"
+                            android:textStyle="bold"
+                            tools:text="USA Today" />
+
+                        <TextView
+                            android:id="@+id/time_text_view"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif"
+                            android:gravity="end"
+                            android:textColor="@android:color/black"
+                            tools:text="8 hours ago" />
+
+                    </LinearLayout>
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/title_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:fontFamily="sans-serif-light"
+                    android:padding="@dimen/_5sdp"
+                    android:textAppearance="?attr/textAppearanceHeadline6"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/_12sdp"
+                    android:textStyle="bold"
+                    tools:text="@string/title" />
+
+                <TextView
+                    android:id="@+id/description_text_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-light"
+                    android:paddingHorizontal="@dimen/_5sdp"
+                    android:textSize="@dimen/_10sdp"
+                    tools:text="@string/description" />
+
+            </LinearLayout>
+
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp">
+
+            <ProgressBar
+                android:id="@+id/details_web_view_progress_bar"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:padding="10dp" />
+
+            <WebView
+                android:id="@+id/details_web_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
+
+</ScrollView>

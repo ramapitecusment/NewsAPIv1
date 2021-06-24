@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 abstract class BaseRecyclerView<T>(
-    private val onClick: (t: T) -> Unit,
     @LayoutRes private val layoutResId : Int,
     compareItms: (old: T, new: T) -> Boolean,
     compareCnts: (old: T, new: T) -> Boolean

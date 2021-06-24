@@ -7,6 +7,7 @@
     android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/card_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/_13sdp"
@@ -29,12 +30,12 @@
                 android:layout_height="match_parent">
 
                 <ImageView
-                    android:id="@+id/news_image"
+                    android:id="@+id/news_image_view"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/_150sdp"
                     android:contentDescription="@string/news_image"
                     android:scaleType="centerCrop"
-                    tool:src="@drawable/demo_news" />
+                    android:src="@drawable/demo_news" />
 
                 <ImageView
                     android:layout_width="match_parent"
@@ -43,14 +44,14 @@
                     android:contentDescription="@string/top_to_bottom_shadow" />
 
                 <ProgressBar
-                    android:id="@+id/progressbar"
+                    android:id="@+id/image_progress_bar"
                     style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center" />
 
                 <TextView
-                    android:id="@+id/author"
+                    android:id="@+id/author_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
@@ -62,19 +63,21 @@
                     android:textStyle="bold"
                     tool:text="Richard Wolf" />
 
-                <ImageView
-                    android:id="@+id/read_later_image"
+                <ImageButton
+                    android:id="@+id/read_later_image_button"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_gravity="end"
                     android:layout_margin="14dp"
+                    android:background="@android:color/transparent"
                     android:contentDescription="@string/read_later_image"
-                    tool:src="@drawable/ic_bookmark_white" />
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_bookmark_white" />
 
             </FrameLayout>
 
             <TextView
-                android:id="@+id/title"
+                android:id="@+id/title_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-light"
@@ -85,7 +88,7 @@
                 tool:text="@string/title" />
 
             <TextView
-                android:id="@+id/description"
+                android:id="@+id/description_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-light"
@@ -100,7 +103,7 @@
                 android:padding="@dimen/_5sdp">
 
                 <TextView
-                    android:id="@+id/source"
+                    android:id="@+id/source_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-light"
@@ -119,7 +122,7 @@
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/time"
+                    android:id="@+id/time_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-light"

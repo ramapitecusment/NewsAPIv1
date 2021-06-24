@@ -20,7 +20,7 @@ interface ArticleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAllArticles(articles: List<ArticleEntity>): Completable
 
-    @Update
+    @Update(onConflict = OnConflictStrategy.REPLACE, entity = ArticleEntity::class)
     fun updateArticle(article: ArticleEntity): Completable
 
     @Delete
@@ -69,7 +69,7 @@ interface ArticleDao {
     fun insertReadLater(readLater: ReadLater): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAllReadLater(topHeadlines: List<ArticleTopHeadline>): Completable
+    fun insertAllReadLater(readLater: List<ReadLater>): Completable
 
     @Update
     fun updateReadLater(readLater: ReadLater): Completable
@@ -81,5 +81,5 @@ interface ArticleDao {
     fun deleteAllReadLater(): Completable
 
     @Query("SELECT * FROM read_later_table")
-    fun getAllReadLater(): LiveData<List<ReadLater>>
+    fun getAllReadLater(): Flowable<List<ReadLater>>
 }

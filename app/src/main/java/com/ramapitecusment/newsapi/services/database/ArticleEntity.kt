@@ -18,10 +18,12 @@ data class ArticleEntity(
     val title: String?,
     val url: String?,
     val urlToImage: String?,
+    var isReadLater: Int = 0,
     val searchTag: String?
 ) : Parcelable
 
 fun ArticleEntity.toArticle(): Article = Article(
+    id = id,
     author = author,
     content = content,
     description = description,
@@ -29,12 +31,34 @@ fun ArticleEntity.toArticle(): Article = Article(
     source = source,
     title = title,
     url = url,
-    urlToImage = urlToImage
+    urlToImage = urlToImage,
+    isReadLater = isReadLater,
+    country = "NaN",
+    searchTag = searchTag
 )
 
 fun List<ArticleEntity>.toArticle(): List<Article> {
     return this.map {
         it.toArticle()
+    }
+}
+
+fun ArticleEntity.toReadLaterArticle(): ReadLater = ReadLater(
+    id = id,
+    author = author,
+    content = content,
+    description = description,
+    publishedAt = publishedAt,
+    source = source,
+    title = title,
+    url = url,
+    urlToImage = urlToImage,
+    isReadLater = isReadLater
+)
+
+fun List<ArticleEntity>.toReadLaterArticle(): List<ReadLater> {
+    return this.map {
+        it.toReadLaterArticle()
     }
 }
 

@@ -1,23 +1,17 @@
 package com.ramapitecusment.newsapi.scenes.topheadlines
 
 import android.text.TextUtils
-import androidx.lifecycle.MutableLiveData
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
 import com.ramapitecusment.newsapi.common.mvvm.Data
 import com.ramapitecusment.newsapi.common.mvvm.Text
-import com.ramapitecusment.newsapi.common.mvvm.Visible
-import com.ramapitecusment.newsapi.initDI
 import com.ramapitecusment.newsapi.services.database.ArticleTopHeadline
 import com.ramapitecusment.newsapi.services.database.toArticle
-import com.ramapitecusment.newsapi.services.network.Response
 import com.ramapitecusment.newsapi.services.network.toArticleTopHeadline
 import com.ramapitecusment.newsapi.services.topheadlines.TopHeadlinesService
-import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
-import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
 class TopHeadlinesViewModel(private val service: TopHeadlinesService) : BaseNewsViewModel() {

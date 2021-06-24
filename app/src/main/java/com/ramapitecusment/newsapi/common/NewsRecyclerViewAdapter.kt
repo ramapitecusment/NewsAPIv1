@@ -1,68 +1,76 @@
 package com.ramapitecusment.newsapi.common
 
-import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.annotation.IdRes
-import androidx.annotation.LayoutRes
-import androidx.viewbinding.ViewBinding
-import by.kirich1409.viewbindingdelegate.viewBinding
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.Target
+import android.view.ViewGroup
+import android.widget.ImageButton
+import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.databinding.NewsItemBinding
 import com.ramapitecusment.newsapi.services.database.Article
 
+
 class NewsRecyclerViewAdapter(
-    private val clickListener: (article: Article) -> Unit,
-    @LayoutRes private val layoutResId: Int,
-    compareItms: (old: Article, new: Article) -> Boolean,
-    compareCnts: (old: Article, new: Article) -> Boolean
-) : BaseRecyclerView<Article>(
-    clickListener,
-    layoutResId,
-    compareItms,
-    compareCnts
-) {
+    private val articleClickListener: (article: Article) -> Unit,
+    private val readLaterClickListener: (article: Article) -> Unit,
+) : ListAdapter<Article, NewsRecyclerViewAdapter.ViewHolder>(NewsCallback()) {
 
-    private lateinit var author: TextView
-    private lateinit var title: TextView
-    private lateinit var description: TextView
-    private lateinit var source: TextView
-    private lateinit var time: TextView
-    private lateinit var newsImage: ImageView
-    private lateinit var progressbar: ProgressBar
-
-    override fun ViewHolder.onBind(item: Article) {
-        Log.d(LOG, "Recycler View Adapter bind")
-
-        author = itemView.findViewById(R.id.author)
-        title = itemView.findViewById(R.id.title)
-        description = itemView.findViewById(R.id.description)
-        source = itemView.findViewById(R.id.source)
-        time = itemView.findViewById(R.id.time)
-        newsImage = itemView.findViewById(R.id.news_image)
-        progressbar = itemView.findViewById(R.id.progressbar)
-
-        initView(item)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return ViewHolder.from(parent)
     }
 
-    private fun initView(article: Article) {
-        author.text = article.author
-        title.text = article.title
-        description.text = article.description
-        source.text = article.source
-        time.text = article.publishedAt
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = getItem(position)
+        holder.bind(item)
 
-        newsImage.glideImage(article.urlToImage, progressbar)
+        holder.cardView.setOnClickListener {
+            articleClickListener(item)
+        }
+        holder.readLaterButton.setOnClickListener {
+            readLaterClickListener(item)
+        }
+    }
+
+    class ViewHolder(private val binding: NewsItemBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        val readLaterButton: ImageButton = binding.readLaterImageButton
+        val cardView: CardView = binding.cardView
+
+        fun bind(article: Article) {
+            binding.authorTextView.text = article.author
+            binding.titleTextView.text = article.title
+            binding.descriptionTextView.text = article.description
+            binding.sourceTextView.text = article.source
+            binding.timeTextView.text = article.publishedAt
+            binding.newsImageView.glideImage(article.urlToImage, binding.imageProgressBar)
+
+            Log.d(LOG, "bind: ${article.id}")
+            if (article.isReadLater == 1)
+                binding.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_red)
+            else
+                binding.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_white)
+        }
+
+        companion object {
+            fun from(parent: ViewGroup): ViewHolder {
+                return ViewHolder(NewsItemBinding.inflate(LayoutInflater.from(parent.context)))
+            }
+        }
+    }
+}
+
+class NewsCallback : DiffUtil.ItemCallback<Article>() {
+    override fun areItemsTheSame(oldItem: Article, newItem: Article): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: Article, newItem: Article): Boolean {
+        return oldItem.title == newItem.title &&
+                oldItem.author == newItem.author &&
+                oldItem.publishedAt == newItem.publishedAt
     }
 }
 

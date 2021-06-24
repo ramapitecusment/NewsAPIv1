@@ -16,4 +16,5 @@
     <string name="search">Search</string>
     <string name="delete">Delete</string>
     <string name="delete_data">Очистить данные</string>
+    <string name="toast_added_read_later">The article was added to ReadLater</string>
 </resources>

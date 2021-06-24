@@ -10,17 +10,19 @@ import kotlinx.parcelize.Parcelize
 data class ReadLater(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
-    val author: String,
-    val content: String,
-    val description: String,
-    val publishedAt: String,
-    val source: String,
-    val title: String,
-    val url: String,
-    val urlToImage: String
+    val author: String?,
+    val content: String?,
+    val description: String?,
+    val publishedAt: String?,
+    val source: String?,
+    val title: String?,
+    val url: String?,
+    val urlToImage: String?,
+    var isReadLater: Int = 0
 ) : Parcelable
 
 fun ReadLater.toArticle(): Article = Article(
+    id = id,
     author = author,
     content = content,
     description = description,
@@ -28,7 +30,10 @@ fun ReadLater.toArticle(): Article = Article(
     source = source,
     title = title,
     url = url,
-    urlToImage = urlToImage
+    urlToImage = urlToImage,
+    isReadLater = isReadLater,
+    country = "NaN",
+    searchTag = "NaN"
 )
 
 fun List<ReadLater>.toArticle(): List<Article> {

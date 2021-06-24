@@ -1,11 +1,12 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
 import android.text.TextUtils
+import android.util.Log
 import com.ramapitecusment.newsapi.MainApplication
+import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.*
-import com.ramapitecusment.newsapi.services.database.ArticleEntity
-import com.ramapitecusment.newsapi.services.database.toArticle
+import com.ramapitecusment.newsapi.services.database.*
 import com.ramapitecusment.newsapi.services.everything.EverythingService
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
 import io.reactivex.rxjava3.subjects.PublishSubject
@@ -80,8 +81,8 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
     }
 
     private fun insertAll(articles: List<ArticleEntity>) {
-        service.insertAll(articles).subscribeOnIoObserveMain().subscribe(
-            {
+        service.insertAll(articles).subscribeOnIoObserveMain()
+            .subscribe({
                 showLog("Insert Complete")
             }, { error ->
                 showErrorLog("Insert error: $error")
@@ -89,11 +90,58 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
     }
 
     fun deleteAll() {
-        service.deleteAll().subscribeOnIoObserveMain().subscribe(
-            {
+        service.deleteAll().subscribeOnIoObserveMain()
+            .subscribe({
                 showLog("Delete success")
             }, { error ->
                 showErrorLog("Delete error: $error")
+            }).addToSubscription()
+    }
+
+    fun readLaterArticle(article: ArticleEntity) {
+        Log.d(LOG, "readLaterArticle: ${article.id}")
+        article.isReadLater = 1
+        showLog("readLaterArticle ${article.isReadLater}")
+        update(article)
+        insertReadLater(article.toReadLaterArticle())
+    }
+
+    fun unreadLaterArticle(article: ArticleEntity) {
+        Log.d(LOG, "unreadLaterArticle: ${article.id}")
+        article.isReadLater = 0
+        showLog("unreadLaterArticle ${article.isReadLater}")
+        update(article)
+        deleteReadLater(article.toReadLaterArticle())
+    }
+
+    private fun insertReadLater(article: ReadLater) {
+        service.insertToReadLater(article)
+            .subscribeOnIoObserveMain()
+            .subscribe({
+                showLog("InsertReadLater Complete")
+            }, { error ->
+                showErrorLog("InsertReadLater error: $error")
+            }).addToSubscription()
+    }
+
+    private fun update(article: ArticleEntity) {
+        Log.d(LOG, "update: ${article.id}")
+        service.update(article)
+            .subscribeOnIoObserveMain()
+            .subscribe({
+                showLog("Update success")
+            }, { error ->
+                showErrorLog("Update error: $error")
+            }).addToSubscription()
+    }
+
+    private fun deleteReadLater(article: ReadLater) {
+        service.deleteReadLater(article)
+            .subscribeOnIoObserveMain()
+            .subscribe({
+                showLog("InsertReadLater Complete")
+            }, { error ->
+                showErrorLog("InsertReadLater error: $error")
             }).addToSubscription()
     }
 

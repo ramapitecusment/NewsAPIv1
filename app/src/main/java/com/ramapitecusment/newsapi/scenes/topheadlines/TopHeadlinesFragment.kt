@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.format.Time
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -44,12 +45,7 @@ class TopHeadlinesFragment : BaseFragment<TopHeadlinesViewModel>(R.layout.fragme
     }
 
     private fun initViews() {
-        adapter = NewsRecyclerViewAdapter(
-            clickListener,
-            R.layout.news_item,
-            { old, new -> old.id == new.id },
-            { old, new -> old == new }
-        )
+        adapter = NewsRecyclerViewAdapter(articleClickListener, readLaterClickListener)
         binding.newsLayout.newsRecyclerView.adapter = adapter
     }
 
@@ -69,7 +65,13 @@ class TopHeadlinesFragment : BaseFragment<TopHeadlinesViewModel>(R.layout.fragme
         }
     }
 
-    private val clickListener: (article: Article) -> Unit = { article ->
+    private val articleClickListener: (article: Article) -> Unit = { article ->
+        Toast.makeText(requireContext(), "articleClickListener", Toast.LENGTH_SHORT).show()
+//        navigateToArticleDetails(article)
+    }
+
+    private val readLaterClickListener: (article: Article) -> Unit = { article ->
+        Toast.makeText(requireContext(), "readLaterClickListener", Toast.LENGTH_SHORT).show()
 //        navigateToArticleDetails(article)
     }
 
@@ -87,5 +89,4 @@ class TopHeadlinesFragment : BaseFragment<TopHeadlinesViewModel>(R.layout.fragme
         }
         return super.onOptionsItemSelected(item)
     }
-
 }
