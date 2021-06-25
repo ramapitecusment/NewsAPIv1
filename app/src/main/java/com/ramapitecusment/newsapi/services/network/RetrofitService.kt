@@ -2,7 +2,6 @@ package com.ramapitecusment.newsapi.services.network
 
 import com.ramapitecusment.newsapi.common.*
 import io.reactivex.rxjava3.core.Maybe
-import io.reactivex.rxjava3.internal.operators.maybe.MaybeFromRunnable
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory

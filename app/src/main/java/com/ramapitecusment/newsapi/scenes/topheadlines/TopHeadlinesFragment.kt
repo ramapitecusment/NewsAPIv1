@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -16,9 +17,8 @@ import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
 import com.ramapitecusment.newsapi.databinding.FragmentTopHeadlinesBinding
 import com.ramapitecusment.newsapi.databinding.NewsItemBinding
 import com.ramapitecusment.newsapi.scenes.everything.EverythingViewModel
-import com.ramapitecusment.newsapi.services.database.Article
-import com.ramapitecusment.newsapi.services.database.ArticleEntity
-import com.ramapitecusment.newsapi.services.database.toArticle
+import com.ramapitecusment.newsapi.scenes.news.NewsFragmentDirections
+import com.ramapitecusment.newsapi.services.database.*
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Observable
@@ -53,8 +53,8 @@ class TopHeadlinesFragment : BaseFragment<TopHeadlinesViewModel>(R.layout.fragme
         with(viewModel) {
             with(binding) {
                 bindVisible(loadingVisible, newsLayout.progressbar)
-                bindVisible(errorVisible, newsLayout.tvNoArticle)
-                bindVisible(internetErrorVisible, newsLayout.tvInternetProblems)
+                bindVisible(errorVisible, newsLayout.noArticleTextView)
+                bindVisible(internetErrorVisible, newsLayout.internetProblemsTextView)
                 bindVisible(pageLoadingVisible, newsLayout.scrollProgressbar)
                 bindVisible(recyclerViewVisible, newsLayout.newsRecyclerView)
 
@@ -67,12 +67,18 @@ class TopHeadlinesFragment : BaseFragment<TopHeadlinesViewModel>(R.layout.fragme
 
     private val articleClickListener: (article: Article) -> Unit = { article ->
         Toast.makeText(requireContext(), "articleClickListener", Toast.LENGTH_SHORT).show()
-//        navigateToArticleDetails(article)
+        findNavController().navigate(NewsFragmentDirections.toDetails(article))
     }
 
     private val readLaterClickListener: (article: Article) -> Unit = { article ->
-        Toast.makeText(requireContext(), "readLaterClickListener", Toast.LENGTH_SHORT).show()
-//        navigateToArticleDetails(article)
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.toast_added_read_later),
+            Toast.LENGTH_SHORT
+        ).show()
+        Log.d(LOG, "readLaterClickListener: ${article.id}")
+        if (article.isReadLater == 1) viewModel.unreadLaterArticle(article.toTopHeadlines())
+        else viewModel.readLaterArticle(article.toTopHeadlines())
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

@@ -18,7 +18,7 @@
         android:rowCount="1">
 
         <EditText
-            android:id="@+id/newsSearch"
+            android:id="@+id/news_search_edit_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_row="0"
@@ -26,17 +26,17 @@
             android:layout_columnWeight="1"
             android:background="@drawable/search_field_background"
             android:ems="10"
-            android:hint="@string/search"
+            android:hint="@string/common_search"
             android:inputType="textPersonName"
             android:padding="10dp"
             android:paddingStart="15dp"
             android:textColor="#ffffff"
             android:textColorHint="#ffffff"
             android:textStyle="bold"
-            android:autofillHints="@string/search" />
+            android:autofillHints="@string/common_search" />
 
         <Button
-            android:id="@+id/buttonSearch"
+            android:id="@+id/search_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_row="0"

@@ -29,14 +29,22 @@ class NewsRecyclerViewAdapter(
         holder.cardView.setOnClickListener {
             articleClickListener(item)
         }
-        holder.readLaterButton.setOnClickListener {
+        holder.readLaterImageButton.setOnClickListener {
             readLaterClickListener(item)
+//            val readLaterImageButton = holder.readLaterImageButton
+//            val imageTag = readLaterImageButton.tag
+////            if (readLaterImageButton.tag == R.drawable.ic_bookmark_red)
+//            Log.d(LOG, "tag: $imageTag")
+//            if (item.isReadLater == 1)
+//                holder.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_white)
+//            else
+//                holder.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_red)
         }
     }
 
     class ViewHolder(private val binding: NewsItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        val readLaterButton: ImageButton = binding.readLaterImageButton
+        val readLaterImageButton: ImageButton = binding.readLaterImageButton
         val cardView: CardView = binding.cardView
 
         fun bind(article: Article) {
@@ -68,9 +76,7 @@ class NewsCallback : DiffUtil.ItemCallback<Article>() {
     }
 
     override fun areContentsTheSame(oldItem: Article, newItem: Article): Boolean {
-        return oldItem.title == newItem.title &&
-                oldItem.author == newItem.author &&
-                oldItem.publishedAt == newItem.publishedAt
+        return oldItem == newItem
     }
 }
 

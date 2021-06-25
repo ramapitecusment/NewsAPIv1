@@ -5,6 +5,8 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -48,7 +50,6 @@ fun LifecycleOwner.bindText(liveData: Text, textView: TextView) =
 fun LifecycleOwner.bindText(liveData: Text, textView: TextView, subject: PublishSubject<String>) =
     liveData.observe(this, {
         textView.text = it
-        subject.onNext(it)
     })
 
 fun LifecycleOwner.bindMenuItemVisibility(liveData: Visible, menuItem: MenuItem) =
@@ -96,16 +97,26 @@ fun ImageView.glideImage(urlToImage: String?, progressbar: ProgressBar) {
     }
 }
 
+fun WebView.baseSetup() {
+    settings.domStorageEnabled = true
+    settings.javaScriptEnabled = true
+    settings.loadsImagesAutomatically = true
+    scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
+    webViewClient = WebViewClient()
+}
+
 fun LifecycleOwner.bindTextChange(
-    liveData: Text,
+    search: Text,
+    page: Data<Int>,
     editText: EditText,
     searchObservable: PublishSubject<String>,
-    pageObservable: PublishSubject<Int>
+    pageObservable: PublishSubject<Int>,
+    getData: () -> Unit
 ): Disposable {
 
     val disposable = editText.textChanges()
         .debounce(900, TimeUnit.MILLISECONDS)
-        .filter { charSequence ->
+        .filter {
             !(TextUtils.isEmpty(editText.text.toString().trim { it <= ' ' }))
         }
         .map { it.toString() }
@@ -114,16 +125,18 @@ fun LifecycleOwner.bindTextChange(
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe({
             Log.d(LOG, "textChanges $it")
-            liveData.mutableValue = it
+            search.mutableValue = it
+            page.mutableValue = 1
             // It must be first
             searchObservable.onNext(it)
             // It must be second
             pageObservable.onNext(1)
+            getData()
         }, {
             Log.e(LOG, "Error $it")
         })
 
-    liveData.observe(this, Observer {
+    search.observe(this, Observer {
         if (editText.text.toString() == it) {
             return@Observer
         }

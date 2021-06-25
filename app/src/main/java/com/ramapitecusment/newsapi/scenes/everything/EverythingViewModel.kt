@@ -8,80 +8,98 @@ import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.*
 import com.ramapitecusment.newsapi.services.database.*
 import com.ramapitecusment.newsapi.services.everything.EverythingService
+import com.ramapitecusment.newsapi.services.network.NetworkService
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
+import com.ramapitecusment.newsapi.services.readLater.ReadLaterService
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
-class EverythingViewModel(private val service: EverythingService) : BaseNewsViewModel() {
+class EverythingViewModel(
+    private val everythingService: EverythingService,
+    private val readLaterService: ReadLaterService,
+    private val networkService: NetworkService
+) : BaseNewsViewModel() {
     var searchTag = Text()
+    var disposable: Disposable? = null
     var searchTagRX: PublishSubject<String> = PublishSubject.create()
 
     init {
-        if (isInternetAvailable(MainApplication.instance)) {
+        if (networkService.isInternetAvailable(MainApplication.instance)) {
             showLog("Connected to internet")
         } else {
             internetErrorState()
-            showErrorLog("There os no Internet connection")
+            showErrorLog("There is no Internet connection")
         }
 
-        pageRx
-            .doOnNext { page ->
-                showLog("doOnNext pageRx: $page")
-                if (page == 1) loadingState()
-                else pageLoadingState()
-            }.withLatestFrom(searchTagRX
-                .filter { charSequence ->
-                    showLog("before filter rxSearch -$charSequence- ${internetErrorVisible.value}")
-                    !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
-                }
-                .doOnNext { showLog("doOnNext searchTagRX: $it") }
-                .map { it.toString() }
-                .distinctUntilChanged()
-            ) { t1, t2 ->
-                showLog("withLatestFrom $t1 ---- $t2")
-                getFromRemote(t2, t1)
-                service.getArticlesBySearchTag(t2).subscribeOnIoObserveMain()
+        pageRx.subscribeOnIoObserveMain().subscribe({ page ->
+            showLog("doOnNext pageRx: $page")
+            this.page.mutableValue = page
+            if (page != 1) pageLoadingState()
+        }, { error ->
+            showErrorLog("pageRx Error: $error")
+        })
+            .addToSubscription()
+
+        searchTagRX
+            .filter { charSequence ->
+                loadingState()
+                showLog("before filter rxSearch -$charSequence- ${internetErrorVisible.value}")
+                !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
             }
-            .switchMap { it.toObservable() }
-            .distinct()
-            .subscribeOnIoObserveMain()
-            .subscribe(
-                {
-                    showLog("On Next combine latest: ${it.size}")
-                    isLoadingPage.mutableValue = false
-                    if (it.isNotEmpty()) {
-                        articles.mutableValue = it.toArticle().distinct()
-                        successState()
-                    }
-                }, {
-                    showErrorLog("Error getArticlesBySearchTag: it")
-                }).addToSubscription()
+            .map { it.toString() }
+            .distinctUntilChanged()
+            .subscribe({ searchTag ->
+                showLog("doOnNext searchTagRX: $searchTag")
+                this.searchTag.mutableValue = searchTag
+            }, { error ->
+                showErrorLog("searchTagRX Error: $error")
+            })
+            .addToSubscription()
     }
 
-    private fun getFromRemote(search: String, page: Int) {
-        service.getFromRemote(search, page).subscribeOnSingleObserveMain().subscribe({ response ->
-            showLog(response.toString())
-            if (response.isSuccessful) {
-                showLog("Get from remote success: ${response.body()?.articles?.size}")
-                isPageEnd.value = (response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE)
-                if (!isPageEnd.value!!) {
-                    response.body()?.articles?.let { insertAll(it.toArticleEntity(search)) }
+    fun getFromRemote(search: String, page: Int) {
+        everythingService.getFromRemote(search, page).subscribeOnSingleObserveMain()
+            .subscribe({ response ->
+                showLog(response.toString())
+                if (response.isSuccessful) {
+                    showLog("Get from remote success: ${response.body()?.articles?.size}")
+                    if (!isPageEnd.value!!) {
+                        response.body()?.articles?.let { insertAll(it.toArticleEntity(search)) }
+                    } else {
+                        showLog("Get from remote success pageEnd: ${isPageEnd.value}")
+                        successState()
+                    }
+                    isPageEnd.value = (response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE)
                 } else {
-                    showLog("Get from remote success pageEnd: ${isPageEnd.value}")
+                    showErrorLog("Got error from the server: $response")
+                    errorState()
                 }
-            } else {
-                showErrorLog("Got error from the server: $response")
-                errorState()
-            }
-        }, { error ->
-            showErrorLog("Error getFromRemote: $error")
-            internetErrorState()
-        }, {
-            showLog("Complete getFromRemote")
-        }).addToSubscription()
+            }, { error ->
+                showErrorLog("Error getFromRemote: $error")
+                internetErrorState()
+            }, {
+                showLog("Complete getFromRemote")
+            }).addToSubscription()
+    }
+
+    fun getFromDatabase(search: String) {
+        disposable?.dispose()
+        disposable = everythingService.getArticlesBySearchTag(search).subscribeOnSingleObserveMain()
+            .subscribe({
+                showLog("On Next combine latest: ${it.size} - $search")
+                isLoadingPage.mutableValue = false
+                if (it.isNotEmpty()) {
+//                    showLog("$it")
+                    articles.mutableValue = it.toArticle().distinct()
+                    successState()
+                }
+            }, {
+                showErrorLog("Error getArticlesBySearchTag: it")
+            })
     }
 
     private fun insertAll(articles: List<ArticleEntity>) {
-        service.insertAll(articles).subscribeOnIoObserveMain()
+        everythingService.insertAll(articles).subscribeOnSingleObserveMain()
             .subscribe({
                 showLog("Insert Complete")
             }, { error ->
@@ -90,7 +108,7 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
     }
 
     fun deleteAll() {
-        service.deleteAll().subscribeOnIoObserveMain()
+        everythingService.deleteAll().subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Delete success")
             }, { error ->
@@ -101,7 +119,7 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
     fun readLaterArticle(article: ArticleEntity) {
         Log.d(LOG, "readLaterArticle: ${article.id}")
         article.isReadLater = 1
-        showLog("readLaterArticle ${article.isReadLater}")
+        showLog("readLaterArticle isReadLater ${article.isReadLater}")
         update(article)
         insertReadLater(article.toReadLaterArticle())
     }
@@ -115,7 +133,7 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
     }
 
     private fun insertReadLater(article: ReadLater) {
-        service.insertToReadLater(article)
+        readLaterService.insertToReadLater(article)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("InsertReadLater Complete")
@@ -126,7 +144,7 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
 
     private fun update(article: ArticleEntity) {
         Log.d(LOG, "update: ${article.id}")
-        service.update(article)
+        everythingService.update(article)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Update success")
@@ -136,12 +154,12 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
     }
 
     private fun deleteReadLater(article: ReadLater) {
-        service.deleteReadLater(article)
+        readLaterService.deleteReadLater(article)
             .subscribeOnIoObserveMain()
             .subscribe({
-                showLog("InsertReadLater Complete")
+                showLog("deleteReadLater Complete")
             }, { error ->
-                showErrorLog("InsertReadLater error: $error")
+                showErrorLog("deleteReadLater error: $error")
             }).addToSubscription()
     }
 
@@ -150,10 +168,16 @@ class EverythingViewModel(private val service: EverythingService) : BaseNewsView
     }
 
     private fun resetPageValue() {
+        page.mutableValue = 1
         pageRx.onNext(1)
     }
 
     fun increasePageValue() {
         increasePageValueProtected()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposable?.dispose()
     }
 }

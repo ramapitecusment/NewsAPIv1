@@ -14,7 +14,7 @@
         android:visibility="gone" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefresh"
+        android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -31,27 +31,27 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
             <TextView
-                android:id="@+id/tv_no_article"
+                android:id="@+id/no_article_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="@string/no_article_is_found"
+                android:text="@string/scr_any_tv_no_news"
                 android:textAlignment="center"
                 android:textSize="@dimen/_20sdp"
                 android:visibility="gone" />
 
             <TextView
-                android:id="@+id/tv_internet_problems"
+                android:id="@+id/internet_problems_text_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="@string/no_article_is_found_internet"
+                android:text="@string/scr_any_tv_internet_error"
                 android:textAlignment="center"
                 android:textSize="@dimen/_20sdp"
                 android:visibility="gone" />
 
             <ProgressBar
-                android:id="@+id/scrollProgressbar"
+                android:id="@+id/scroll_progressbar"
                 style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

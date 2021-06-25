@@ -37,8 +37,14 @@ abstract class BaseViewModel() : AndroidViewModel(MainApplication.instance) {
     protected fun Completable.subscribeOnIoObserveMain(): Completable =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
 
+    protected fun Completable.subscribeOnSingleObserveMain(): Completable =
+        this.subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread())
+
     protected fun <T> Single<T>.subscribeOnIoObserveMain(): Single<T> =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+
+    protected fun <T> Single<T>.subscribeOnSingleObserveMain(): Single<T> =
+        this.subscribeOn(Schedulers.single()).observeOn(AndroidSchedulers.mainThread())
 
     protected fun <T> Maybe<T>.subscribeOnIoObserveMain(): Maybe<T> =
         this.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())

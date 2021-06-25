@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.navigation.fragment.findNavController
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ramapitecusment.newsapi.R
@@ -37,7 +38,7 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
         adapter = NewsRecyclerViewAdapter(articleClickListener, readLaterClickListener)
         binding.newsLayout.newsRecyclerView.adapter = adapter
 
-        binding.buttonSearch.setOnClickListener {
+        binding.searchButton.setOnClickListener {
             viewModel.searchButtonClicked()
         }
     }
@@ -46,19 +47,27 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
         with(viewModel) {
             with(binding) {
                 bindVisible(loadingVisible, newsLayout.progressbar)
-                bindVisible(errorVisible, newsLayout.tvNoArticle)
-                bindVisible(internetErrorVisible, newsLayout.tvInternetProblems)
+                bindVisible(errorVisible, newsLayout.noArticleTextView)
+                bindVisible(internetErrorVisible, newsLayout.internetProblemsTextView)
                 bindVisible(pageLoadingVisible, newsLayout.scrollProgressbar)
                 bindVisible(recyclerViewVisible, newsLayout.newsRecyclerView)
 
-                bindTextChange(searchTag, newsSearch, searchTagRX, pageRx).addToSubscription()
-                bindText(searchTag, newsSearch, searchTagRX)
+                bindTextChange(searchTag, page, newsSearchEditText, searchTagRX, pageRx) {
+                    getFromRemote(searchTag.value, page.value)
+                    getFromDatabase(searchTag.value)
+                }.addToSubscription()
+                bindText(searchTag, newsSearchEditText)
                 bindRecyclerViewAdapter(articles, adapter)
 
-                bindPager(newsLayout.newsRecyclerView, isLoadingPage) { increasePageValue() }
+                bindPager(newsLayout.newsRecyclerView, isLoadingPage) {
+                    increasePageValue()
+                    getFromRemote(searchTag.value, page.value)
+//                    getFromDatabase(searchTag.value)
+                }
             }
         }
     }
+
 
     private val articleClickListener: (article: Article) -> Unit = { article ->
         Toast.makeText(requireContext(), "articleClickListener", Toast.LENGTH_SHORT).show()

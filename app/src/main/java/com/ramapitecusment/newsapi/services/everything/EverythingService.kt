@@ -16,28 +16,24 @@ import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.schedulers.Schedulers
 
 class EverythingService(
-    private val api: NewsApi,
-    private val context: Context,
-    private val dao: ArticleDao
+    private val newsApi: NewsApi,
+    private val articleDao: ArticleDao
 ) {
     fun getFromRemote(searchTag: String, page: Int): Maybe<retrofit2.Response<Response>> =
-        api.getEverythingRemote(searchTag, API_KEY_VALUE, PAGE_SIZE_VALUE, page)
+        newsApi.getEverythingRemote(searchTag, API_KEY_VALUE, PAGE_SIZE_VALUE, page)
 
-    fun insertAll(articles: List<ArticleEntity>): Completable = dao.insertAllArticles(articles)
+    fun insertAll(articles: List<ArticleEntity>): Completable =
+        articleDao.insertAllArticles(articles)
 
-    fun getAll(): Flowable<List<ArticleEntity>> = dao.getAllArticles()
+    fun getAll(): Flowable<List<ArticleEntity>> = articleDao.getAllArticles()
 
     fun getArticlesBySearchTag(searchTag: String): Flowable<List<ArticleEntity>> =
-        dao.getArticlesBySearchTag(searchTag)
+        articleDao.getArticlesBySearchTag(searchTag)
 
-    fun deleteAll(): Completable = dao.deleteAllArticles()
+    fun deleteAll(): Completable = articleDao.deleteAllArticles()
 
-    fun update(article: ArticleEntity): Completable = dao.updateArticle(article)
+    fun update(article: ArticleEntity): Completable = articleDao.updateArticle(article)
 
-    fun insert(article: ArticleEntity): Completable = dao.insertArticle(article)
-
-    fun insertToReadLater(article: ReadLater): Completable = dao.insertReadLater(article)
-
-    fun deleteReadLater(article: ReadLater): Completable = dao.deleteReadLater(article)
+    fun insert(article: ArticleEntity): Completable = articleDao.insertArticle(article)
 
 }
