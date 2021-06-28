@@ -6,19 +6,21 @@ import androidx.paging.PagingState
 import androidx.paging.rxjava3.RxRemoteMediator
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleDao
+import com.ramapitecusment.newsapi.services.database.Articles
 import com.ramapitecusment.newsapi.services.network.NewsApi
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
+import java.io.InvalidObjectException
 
 @ExperimentalPagingApi
 class RemoteMediator(
     private val newsApi: NewsApi,
     private val articleDao: ArticleDao
-) : RxRemoteMediator<Int, Article>() {
+) : RxRemoteMediator<Int, Articles.Article>() {
 
     override fun loadSingle(
         loadType: LoadType,
-        state: PagingState<Int, Article>
+        state: PagingState<Int, Articles.Article>
     ): Single<MediatorResult> {
         return Single.just(loadType)
             .subscribeOn(Schedulers.io())
