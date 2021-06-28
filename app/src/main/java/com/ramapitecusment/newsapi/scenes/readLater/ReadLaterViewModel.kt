@@ -2,14 +2,15 @@ package com.ramapitecusment.newsapi.scenes.readLater
 
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
+import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ReadLater
 import com.ramapitecusment.newsapi.services.database.toArticle
 import com.ramapitecusment.newsapi.services.network.NetworkService
-import com.ramapitecusment.newsapi.services.readLater.ReadLaterService
+import com.ramapitecusment.newsapi.services.news.NewsService
 import io.reactivex.rxjava3.disposables.Disposable
 
 class ReadLaterViewModel(
-    private val readLaterService: ReadLaterService,
+    private val newsService: NewsService,
     private val networkService: NetworkService
 ) : BaseNewsViewModel() {
     var disposable: Disposable? = null
@@ -22,7 +23,7 @@ class ReadLaterViewModel(
             showErrorLog("There is no Internet connection")
         }
 
-        readLaterService.getAll().subscribeOnSingleObserveMain()
+        newsService.getAll().subscribeOnSingleObserveMain()
             .subscribe({
                 showLog("On Next readLaterService: ${it.size}")
                 isLoadingPage.mutableValue = false
@@ -37,7 +38,7 @@ class ReadLaterViewModel(
 
     fun getFromDatabase() {
         disposable?.dispose()
-        disposable = readLaterService.getAll().subscribeOnSingleObserveMain()
+        disposable = newsService.getAll().subscribeOnSingleObserveMain()
             .subscribe({
                 showLog("On Next readLaterService: ${it.size}")
                 isLoadingPage.mutableValue = false
@@ -50,8 +51,8 @@ class ReadLaterViewModel(
             })
     }
 
-    fun deleteAll() {
-        readLaterService.deleteAll().subscribeOnIoObserveMain().subscribe(
+    fun deleteAllClicked() {
+        newsService.deleteAll().subscribeOnIoObserveMain().subscribe(
             {
                 showLog("Delete success")
                 getFromDatabase()
@@ -60,8 +61,8 @@ class ReadLaterViewModel(
             }).addToSubscription()
     }
 
-    fun delete(article: ReadLater) {
-        readLaterService.deleteReadLater(article).subscribeOnIoObserveMain().subscribe({
+    fun delete(article: Article) {
+        newsService.deleteReadLater(article).subscribeOnIoObserveMain().subscribe({
             showLog("deleteReadLater Complete")
         }, { error ->
             showErrorLog("deleteReadLater error: $error")

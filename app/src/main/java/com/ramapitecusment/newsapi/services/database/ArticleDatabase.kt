@@ -6,11 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [ArticleEntity::class, ArticleTopHeadline::class, ReadLater::class],
-    version = 4,
+    entities = [Article::class],
+    version = 5,
     exportSchema = false
 )
-abstract class ArticleDatabase : RoomDatabase(){
+abstract class ArticleDatabase : RoomDatabase() {
     abstract fun databaseDao(): ArticleDao
 
     companion object {

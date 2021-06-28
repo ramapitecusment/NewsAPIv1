@@ -62,7 +62,6 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
                 bindPager(newsLayout.newsRecyclerView, isLoadingPage) {
                     increasePageValue()
                     getFromRemote(searchTag.value, page.value)
-//                    getFromDatabase(searchTag.value)
                 }
             }
         }
@@ -93,7 +92,7 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.delete -> {
-                viewModel.deleteAll()
+                viewModel.deleteAllClicked()
                 return true
             }
         }

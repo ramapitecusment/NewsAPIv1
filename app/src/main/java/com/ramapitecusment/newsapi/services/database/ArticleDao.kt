@@ -1,85 +1,38 @@
 package com.ramapitecusment.newsapi.services.database
 
-import androidx.lifecycle.LiveData
+import androidx.paging.PagingSource
 import androidx.room.*
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Maybe
-import io.reactivex.rxjava3.core.Observable
 
 @Dao
 interface ArticleDao {
 
-//  ################################################################################################
-//  ###################################     Articles      ##########################################
-//  ################################################################################################
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertArticle(article: Article): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertArticle(article: ArticleEntity): Completable
+    fun insert(articles: List<Article>): Completable
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAllArticles(articles: List<ArticleEntity>): Completable
-
-    @Update(onConflict = OnConflictStrategy.REPLACE, entity = ArticleEntity::class)
-    fun updateArticle(article: ArticleEntity): Completable
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    fun update(article: Article): Completable
 
     @Delete
-    fun deleteArticle(article: ArticleEntity): Completable
+    fun delete(article: Article): Completable
 
-    @Query("DELETE FROM news_table")
-    fun deleteAllArticles(): Completable
+    @Query("DELETE FROM article_table")
+    fun delete(): Completable
 
-    @Query("SELECT * FROM news_table")
-    fun getAllArticles(): Flowable<List<ArticleEntity>>
+    @Query("SELECT * FROM article_table")
+    fun getAllArticles(): Flowable<List<Article>>
 
-    @Query("SELECT * FROM news_table WHERE searchTag =:q")
-    fun getArticlesBySearchTag(q: String): Flowable<List<ArticleEntity>>
+    @Query("SELECT * FROM article_table WHERE searchTag =:searchTag")
+    fun getArticlesBySearchTag(searchTag: String): PagingSource<Int, List<Article>>
 
-//  ################################################################################################
-//  ###################################   Top Headlines   ##########################################
-//  ################################################################################################
+    @Query("SELECT * FROM article_table WHERE country =:country")
+    fun getArticlesByCountry(country: String): PagingSource<Int, List<Article>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertTopHeadline(topHeadline: ArticleTopHeadline): Completable
+    @Query("SELECT * FROM article_table WHERE isReadLater =:isReadLater")
+    fun getArticlesByReadLater(isReadLater: Int = 1): Flowable<List<Article>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAllTopHeadlines(topHeadlines: List<ArticleTopHeadline>): Completable
-
-    @Update
-    fun updateTopHeadline(topHeadline: ArticleTopHeadline): Completable
-
-    @Delete
-    fun deleteTopHeadline(topHeadline: ArticleTopHeadline): Completable
-
-    @Query("DELETE FROM top_headlines_table")
-    fun deleteAllTopHeadlines(): Completable
-
-    @Query("SELECT * FROM top_headlines_table")
-    fun getAllTopHeadlines(): Flowable<List<ArticleTopHeadline>>
-
-    @Query("SELECT * FROM top_headlines_table WHERE country =:country")
-    fun getTopHeadlinesByCountry(country: String): Flowable<List<ArticleTopHeadline>>
-
-
-//  ################################################################################################
-//  ###################################     Read Later    ##########################################
-//  ################################################################################################
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertReadLater(readLater: ReadLater): Completable
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAllReadLater(readLater: List<ReadLater>): Completable
-
-    @Update
-    fun updateReadLater(readLater: ReadLater): Completable
-
-    @Delete
-    fun deleteReadLater(readLater: ReadLater): Completable
-
-    @Query("DELETE FROM read_later_table")
-    fun deleteAllReadLater(): Completable
-
-    @Query("SELECT * FROM read_later_table")
-    fun getAllReadLater(): Flowable<List<ReadLater>>
 }

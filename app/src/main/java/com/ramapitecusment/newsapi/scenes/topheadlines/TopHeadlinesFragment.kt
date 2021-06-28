@@ -89,7 +89,7 @@ class TopHeadlinesFragment : BaseFragment<TopHeadlinesViewModel>(R.layout.fragme
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.delete -> {
-                viewModel.deleteAll()
+                viewModel.deleteAllClicked()
                 return true
             }
         }

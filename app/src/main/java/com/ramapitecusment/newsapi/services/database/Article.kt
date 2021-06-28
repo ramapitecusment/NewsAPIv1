@@ -1,10 +1,14 @@
 package com.ramapitecusment.newsapi.services.database
 
 import android.os.Parcelable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
+@Entity(tableName = "article_table")
 @Parcelize
 data class Article(
+    @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     val author: String?,
     val content: String?,
@@ -18,61 +22,3 @@ data class Article(
     val country: String?,
     var isReadLater: Int = 0
 ) : Parcelable
-
-fun Article.toReadLaterArticle(): ReadLater = ReadLater(
-    id = id,
-    author = author,
-    content = content,
-    description = description,
-    publishedAt = publishedAt,
-    source = source,
-    title = title,
-    url = url,
-    urlToImage = urlToImage,
-    isReadLater = isReadLater
-)
-
-fun List<Article>.toReadLaterArticle(): List<ReadLater> {
-    return this.map {
-        it.toReadLaterArticle()
-    }
-}
-
-fun Article.toArticleEntity(): ArticleEntity = ArticleEntity(
-    id = id,
-    author = author,
-    content = content,
-    description = description,
-    publishedAt = publishedAt,
-    source = source,
-    title = title,
-    url = url,
-    urlToImage = urlToImage,
-    isReadLater = isReadLater,
-    searchTag = searchTag
-)
-
-fun List<Article>.toArticleEntity(): List<ArticleEntity> {
-    return this.map {
-        it.toArticleEntity()
-    }
-}
-
-fun Article.toTopHeadlines(): ArticleTopHeadline = ArticleTopHeadline(
-    author = author,
-    content = content,
-    description = description,
-    publishedAt = publishedAt,
-    source = source,
-    title = title,
-    url = url,
-    urlToImage = urlToImage,
-    isReadLater = isReadLater,
-    country = country
-)
-
-fun List<Article>.toTopHeadlines(): List<ArticleTopHeadline> {
-    return this.map {
-        it.toTopHeadlines()
-    }
-}

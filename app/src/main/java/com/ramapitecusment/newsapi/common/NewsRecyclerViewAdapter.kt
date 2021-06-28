@@ -1,6 +1,5 @@
 package com.ramapitecusment.newsapi.common
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -23,31 +22,16 @@ class NewsRecyclerViewAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = getItem(position)
-        holder.bind(item)
-
-        holder.cardView.setOnClickListener {
-            articleClickListener(item)
-        }
-        holder.readLaterImageButton.setOnClickListener {
-            readLaterClickListener(item)
-//            val readLaterImageButton = holder.readLaterImageButton
-//            val imageTag = readLaterImageButton.tag
-////            if (readLaterImageButton.tag == R.drawable.ic_bookmark_red)
-//            Log.d(LOG, "tag: $imageTag")
-//            if (item.isReadLater == 1)
-//                holder.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_white)
-//            else
-//                holder.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_red)
-        }
+        holder.bind(getItem(position), articleClickListener, readLaterClickListener)
     }
 
     class ViewHolder(private val binding: NewsItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        val readLaterImageButton: ImageButton = binding.readLaterImageButton
-        val cardView: CardView = binding.cardView
-
-        fun bind(article: Article) {
+        fun bind(
+            article: Article,
+            articleClickListener: (article: Article) -> Unit,
+            readLaterClickListener: (article: Article) -> Unit
+        ) {
             binding.authorTextView.text = article.author
             binding.titleTextView.text = article.title
             binding.descriptionTextView.text = article.description
@@ -55,11 +39,17 @@ class NewsRecyclerViewAdapter(
             binding.timeTextView.text = article.publishedAt
             binding.newsImageView.glideImage(article.urlToImage, binding.imageProgressBar)
 
-            Log.d(LOG, "bind: ${article.id}")
             if (article.isReadLater == 1)
                 binding.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_red)
             else
                 binding.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_white)
+
+            binding.cardView.setOnClickListener {
+                articleClickListener(article)
+            }
+            binding.readLaterImageButton.setOnClickListener {
+                readLaterClickListener(article)
+            }
         }
 
         companion object {

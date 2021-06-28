@@ -25,7 +25,7 @@ abstract class BaseNewsViewModel(): BaseViewModel() {
     val recyclerViewVisible = Visible(false)
 
 
-    protected fun increasePageValueProtected() {
+    fun increasePageValue() {
         showLog("${articles.value.size} - ${(articles.value.size / PAGE_SIZE_VALUE) + 1}")
         page.mutableValue = (articles.value.size / PAGE_SIZE_VALUE) + 1
         pageRx.onNext((articles.value.size / PAGE_SIZE_VALUE) + 1)

@@ -6,20 +6,17 @@ import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
-import com.ramapitecusment.newsapi.common.mvvm.Data
 import com.ramapitecusment.newsapi.common.mvvm.Text
 import com.ramapitecusment.newsapi.services.database.*
 import com.ramapitecusment.newsapi.services.network.NetworkService
 import com.ramapitecusment.newsapi.services.network.toArticleTopHeadline
-import com.ramapitecusment.newsapi.services.readLater.ReadLaterService
-import com.ramapitecusment.newsapi.services.topheadlines.TopHeadlinesService
+import com.ramapitecusment.newsapi.services.news.NewsService
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
 class TopHeadlinesViewModel(
-    private val topHeadlinesService: TopHeadlinesService,
-    private val readLaterService: ReadLaterService,
+    private val newsService: NewsService,
     private val networkService: NetworkService
 ) : BaseNewsViewModel() {
     private var country = Text()
@@ -67,7 +64,7 @@ class TopHeadlinesViewModel(
         Observable.interval(5, TimeUnit.SECONDS)
             .switchMap {
                 getFromRemote(country.value, 1)
-                topHeadlinesService.getAllByCountry(country.value).subscribeOnSingleObserveMain()
+                newsService.getArticlesByCountry(country.value).subscribeOnSingleObserveMain()
                     .toObservable()
             }
             .distinct()
@@ -87,7 +84,7 @@ class TopHeadlinesViewModel(
 
 
     private fun getFromRemote(country: String, page: Int) {
-        topHeadlinesService.getFromRemote(country, page).subscribeOnSingleObserveMain()
+        newsService.getArticlesByCountry(country, page).subscribeOnSingleObserveMain()
             .subscribe({ response ->
                 showLog(response.toString())
                 if (response.isSuccessful) {
@@ -110,72 +107,45 @@ class TopHeadlinesViewModel(
             }).addToSubscription()
     }
 
-    fun increasePageValue() {
-        increasePageValueProtected()
-    }
-
-    private fun insertAll(articles: List<ArticleTopHeadline>) {
-        topHeadlinesService.insertAll(articles).subscribeOnIoObserveMain().subscribe(
-            {
-                showLog("Insert Complete")
-            }, { error ->
-                showErrorLog("Insert error: $error")
-            }).addToSubscription()
-    }
-
-    fun deleteAll() {
-        topHeadlinesService.deleteAll().subscribeOnIoObserveMain().subscribe(
-            {
-                showLog("Delete success")
-            }, { error ->
-                showErrorLog("Delete error: $error")
-            }).addToSubscription()
-    }
-
-    fun readLaterArticle(article: ArticleTopHeadline) {
-        Log.d(LOG, "readLaterArticle: ${article.id}")
-        article.isReadLater = 1
-        showLog("readLaterArticle isReadLater ${article.isReadLater}")
-        update(article)
-        insertReadLater(article.toReadLaterArticle())
-    }
-
-    fun unreadLaterArticle(article: ArticleTopHeadline) {
-        Log.d(LOG, "unreadLaterArticle: ${article.id}")
-        article.isReadLater = 0
-        showLog("unreadLaterArticle ${article.isReadLater}")
-        update(article)
-        deleteReadLater(article.toReadLaterArticle())
-    }
-
-    private fun insertReadLater(article: ReadLater) {
-        readLaterService.insertToReadLater(article)
+    private fun insert(articles: List<Article>) {
+        newsService.insert(articles)
             .subscribeOnIoObserveMain()
-            .subscribe({
-                showLog("InsertReadLater Complete")
-            }, { error ->
-                showErrorLog("InsertReadLater error: $error")
-            }).addToSubscription()
+            .subscribe(
+                {
+                    showLog("Insert Complete")
+                }, { error ->
+                    showErrorLog("Insert error: $error")
+                }).addToSubscription()
     }
 
-    private fun update(article: ArticleTopHeadline) {
-        Log.d(LOG, "update: ${article.id}")
-        topHeadlinesService.update(article)
+    fun deleteAllClicked() {
+        newsService.delete()
+            .subscribeOnIoObserveMain()
+            .subscribe(
+                {
+                    showLog("Delete success")
+                }, { error ->
+                    showErrorLog("Delete error: $error")
+                }).addToSubscription()
+    }
+
+    fun readLaterArticle(article: Article) {
+        article.isReadLater = 1
+        update(article)
+    }
+
+    fun unreadLaterArticle(article: Article) {
+        article.isReadLater = 0
+        update(article)
+    }
+
+    private fun update(article: Article) {
+        newsService.update(article)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Update success")
             }, { error ->
                 showErrorLog("Update error: $error")
-            }).addToSubscription()
-    }
-
-    private fun deleteReadLater(article: ReadLater) {
-        readLaterService.deleteReadLater(article)
-            .subscribeOnIoObserveMain()
-            .subscribe({
-                showLog("deleteReadLater Complete")
-            }, { error ->
-                showErrorLog("deleteReadLater error: $error")
             }).addToSubscription()
     }
 }

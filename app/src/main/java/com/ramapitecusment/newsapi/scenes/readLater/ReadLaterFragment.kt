@@ -77,7 +77,7 @@ class ReadLaterFragment : BaseFragment<ReadLaterViewModel>(R.layout.fragment_rea
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.delete -> {
-                viewModel.deleteAll()
+                viewModel.deleteAllClicked()
                 return true
             }
         }

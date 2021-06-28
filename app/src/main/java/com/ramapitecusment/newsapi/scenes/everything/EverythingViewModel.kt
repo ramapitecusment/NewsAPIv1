@@ -7,16 +7,14 @@ import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.*
 import com.ramapitecusment.newsapi.services.database.*
-import com.ramapitecusment.newsapi.services.everything.EverythingService
 import com.ramapitecusment.newsapi.services.network.NetworkService
 import com.ramapitecusment.newsapi.services.network.toArticleEntity
-import com.ramapitecusment.newsapi.services.readLater.ReadLaterService
+import com.ramapitecusment.newsapi.services.news.NewsService
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 
 class EverythingViewModel(
-    private val everythingService: EverythingService,
-    private val readLaterService: ReadLaterService,
+    private val newsService: NewsService,
     private val networkService: NetworkService
 ) : BaseNewsViewModel() {
     var searchTag = Text()
@@ -58,7 +56,8 @@ class EverythingViewModel(
     }
 
     fun getFromRemote(search: String, page: Int) {
-        everythingService.getFromRemote(search, page).subscribeOnSingleObserveMain()
+        everythingService.getFromRemote(search, page)
+            .subscribeOnSingleObserveMain()
             .subscribe({ response ->
                 showLog(response.toString())
                 if (response.isSuccessful) {
@@ -84,7 +83,8 @@ class EverythingViewModel(
 
     fun getFromDatabase(search: String) {
         disposable?.dispose()
-        disposable = everythingService.getArticlesBySearchTag(search).subscribeOnSingleObserveMain()
+        disposable = everythingService.getArticlesBySearchTag(search)
+            .subscribeOnSingleObserveMain()
             .subscribe({
                 showLog("On Next combine latest: ${it.size} - $search")
                 isLoadingPage.mutableValue = false
@@ -99,7 +99,9 @@ class EverythingViewModel(
     }
 
     private fun insertAll(articles: List<ArticleEntity>) {
-        everythingService.insertAll(articles).subscribeOnSingleObserveMain()
+        everythingService
+            .insertAll(articles)
+            .subscribeOnSingleObserveMain()
             .subscribe({
                 showLog("Insert Complete")
             }, { error ->
@@ -107,8 +109,10 @@ class EverythingViewModel(
             }).addToSubscription()
     }
 
-    fun deleteAll() {
-        everythingService.deleteAll().subscribeOnIoObserveMain()
+    fun deleteAllClicked() {
+        everythingService
+            .deleteAll()
+            .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Delete success")
             }, { error ->
@@ -133,7 +137,8 @@ class EverythingViewModel(
     }
 
     private fun insertReadLater(article: ReadLater) {
-        readLaterService.insertToReadLater(article)
+        readLaterService
+            .insertToReadLater(article)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("InsertReadLater Complete")
@@ -144,7 +149,8 @@ class EverythingViewModel(
 
     private fun update(article: ArticleEntity) {
         Log.d(LOG, "update: ${article.id}")
-        everythingService.update(article)
+        everythingService
+            .update(article)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Update success")
@@ -154,7 +160,8 @@ class EverythingViewModel(
     }
 
     private fun deleteReadLater(article: ReadLater) {
-        readLaterService.deleteReadLater(article)
+        readLaterService
+            .deleteReadLater(article)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("deleteReadLater Complete")
@@ -170,10 +177,6 @@ class EverythingViewModel(
     private fun resetPageValue() {
         page.mutableValue = 1
         pageRx.onNext(1)
-    }
-
-    fun increasePageValue() {
-        increasePageValueProtected()
     }
 
     override fun onCleared() {

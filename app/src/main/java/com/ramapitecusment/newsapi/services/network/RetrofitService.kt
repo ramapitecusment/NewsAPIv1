@@ -1,7 +1,7 @@
 package com.ramapitecusment.newsapi.services.network
 
 import com.ramapitecusment.newsapi.common.*
-import io.reactivex.rxjava3.core.Maybe
+import io.reactivex.rxjava3.core.Single
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -12,7 +12,6 @@ import retrofit2.http.Query
 
 private val logging = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
 private val client = OkHttpClient.Builder().addInterceptor(logging).build()
-
 
 private val api = Retrofit.Builder()
     .baseUrl(URL)
@@ -29,7 +28,7 @@ interface NewsApi {
         @Query(API_KEY) apiKey: String,
         @Query(PAGE_SIZE) pageSize: Int,
         @Query(PAGE) page: Int
-    ): Maybe<retrofit2.Response<Response>>
+    ): Single<retrofit2.Response<Response>>
 
     @GET(TOP_HEADLINES)
     fun getTopHeadlinesRemote(
@@ -37,7 +36,7 @@ interface NewsApi {
         @Query(API_KEY) apiKey: String,
         @Query(PAGE_SIZE) pageSize: Int,
         @Query(PAGE) page: Int
-    ): Maybe<retrofit2.Response<Response>>
+    ): Single<retrofit2.Response<Response>>
 }
 
 class NewsApiService {

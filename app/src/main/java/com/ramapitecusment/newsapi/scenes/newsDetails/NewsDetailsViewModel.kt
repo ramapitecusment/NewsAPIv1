@@ -3,15 +3,11 @@ package com.ramapitecusment.newsapi.scenes.newsDetails
 import com.ramapitecusment.newsapi.common.mvvm.BaseViewModel
 import com.ramapitecusment.newsapi.common.mvvm.DataList
 import com.ramapitecusment.newsapi.services.database.*
-import com.ramapitecusment.newsapi.services.everything.EverythingService
 import com.ramapitecusment.newsapi.services.network.NetworkService
-import com.ramapitecusment.newsapi.services.newsdetails.NewsDetailsService
-import com.ramapitecusment.newsapi.services.readLater.ReadLaterService
-import com.ramapitecusment.newsapi.services.topheadlines.TopHeadlinesService
+import com.ramapitecusment.newsapi.services.news.NewsService
 
 class NewsDetailsViewModel(
-    private val everythingService: EverythingService,
-    private val topHeadlinesService: TopHeadlinesService,
+    private val newsService: NewsService,
     private val networkService: NetworkService
 ) : BaseViewModel() {
 

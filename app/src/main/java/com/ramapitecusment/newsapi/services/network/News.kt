@@ -1,10 +1,9 @@
 package com.ramapitecusment.newsapi.services.network
 
 import com.google.gson.annotations.SerializedName
-import com.ramapitecusment.newsapi.services.database.ArticleEntity
-import com.ramapitecusment.newsapi.services.database.ArticleTopHeadline
+import com.ramapitecusment.newsapi.services.database.Article
 
-data class Article(
+data class ArticleNetwork(
     @SerializedName("author")
     val author: String?,
     @SerializedName("content")
@@ -32,15 +31,15 @@ data class Source(
 
 data class Response(
     @SerializedName("articles")
-    val articles: List<Article>?,
+    val articles: List<ArticleNetwork>?,
     @SerializedName("status")
     val status: String?,
     @SerializedName("totalResults")
     val totalResults: Int?
 )
 
-fun Article.toArticleEntity(searchTag: String): ArticleEntity =
-    ArticleEntity(
+fun ArticleNetwork.toArticle(searchTag: String = "NaN", country: String = "NaN"): Article =
+    Article(
         author = author,
         content = content,
         description = description,
@@ -49,29 +48,12 @@ fun Article.toArticleEntity(searchTag: String): ArticleEntity =
         title = title,
         url = url,
         urlToImage = urlToImage,
-        searchTag = searchTag
+        searchTag = searchTag,
+        country = country
     )
 
-fun List<Article>.toArticleEntity(searchTag: String): List<ArticleEntity> {
+fun List<ArticleNetwork>.toArticle(searchTag: String, country: String): List<Article> {
     return this.map {
-        it.toArticleEntity(searchTag)
-    }
-}
-
-fun Article.toArticleTopHeadline(country: String): ArticleTopHeadline = ArticleTopHeadline(
-    author = author,
-    content = content,
-    description = description,
-    publishedAt = publishedAt,
-    source = source?.name,
-    title = title,
-    url = url,
-    urlToImage = urlToImage,
-    country = country
-)
-
-fun List<Article>.toArticleTopHeadline(country: String): List<ArticleTopHeadline> {
-    return this.map {
-        it.toArticleTopHeadline(country)
+        it.toArticle(searchTag, country)
     }
 }
