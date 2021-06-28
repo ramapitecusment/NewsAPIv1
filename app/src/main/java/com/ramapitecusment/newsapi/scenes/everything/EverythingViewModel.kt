@@ -8,7 +8,6 @@ import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.*
 import com.ramapitecusment.newsapi.services.database.*
 import com.ramapitecusment.newsapi.services.network.NetworkService
-import com.ramapitecusment.newsapi.services.network.toArticleEntity
 import com.ramapitecusment.newsapi.services.news.NewsService
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.subjects.PublishSubject
@@ -56,7 +55,7 @@ class EverythingViewModel(
     }
 
     fun getFromRemote(search: String, page: Int) {
-        everythingService.getFromRemote(search, page)
+        newsService.getFromRemote(search, page)
             .subscribeOnSingleObserveMain()
             .subscribe({ response ->
                 showLog(response.toString())
@@ -83,7 +82,7 @@ class EverythingViewModel(
 
     fun getFromDatabase(search: String) {
         disposable?.dispose()
-        disposable = everythingService.getArticlesBySearchTag(search)
+        disposable = newsService.getArticlesBySearchTag(search)
             .subscribeOnSingleObserveMain()
             .subscribe({
                 showLog("On Next combine latest: ${it.size} - $search")
@@ -99,7 +98,7 @@ class EverythingViewModel(
     }
 
     private fun insertAll(articles: List<ArticleEntity>) {
-        everythingService
+        newsService
             .insertAll(articles)
             .subscribeOnSingleObserveMain()
             .subscribe({
@@ -110,7 +109,7 @@ class EverythingViewModel(
     }
 
     fun deleteAllClicked() {
-        everythingService
+        newsService
             .deleteAll()
             .subscribeOnIoObserveMain()
             .subscribe({
@@ -149,7 +148,7 @@ class EverythingViewModel(
 
     private fun update(article: ArticleEntity) {
         Log.d(LOG, "update: ${article.id}")
-        everythingService
+        newsService
             .update(article)
             .subscribeOnIoObserveMain()
             .subscribe({
@@ -160,7 +159,7 @@ class EverythingViewModel(
     }
 
     private fun deleteReadLater(article: ReadLater) {
-        readLaterService
+        newsService
             .deleteReadLater(article)
             .subscribeOnIoObserveMain()
             .subscribe({
