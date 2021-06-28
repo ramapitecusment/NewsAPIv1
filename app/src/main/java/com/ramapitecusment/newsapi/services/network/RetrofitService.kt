@@ -2,16 +2,23 @@ package com.ramapitecusment.newsapi.services.network
 
 import com.ramapitecusment.newsapi.common.*
 import io.reactivex.rxjava3.core.Maybe
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
+private val logging = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+private val client = OkHttpClient.Builder().addInterceptor(logging).build()
+
+
 private val api = Retrofit.Builder()
     .baseUrl(URL)
     .addConverterFactory(GsonConverterFactory.create())
     .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
+    .client(client)
     .build()
 
 interface NewsApi {
