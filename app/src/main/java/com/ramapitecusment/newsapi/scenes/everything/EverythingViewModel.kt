@@ -11,8 +11,11 @@ import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.network.NetworkService
 import com.ramapitecusment.newsapi.services.network.toArticle
 import com.ramapitecusment.newsapi.services.news.NewsService
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
+import java.util.concurrent.TimeUnit
 
 class EverythingViewModel(private val newsService: NewsService, networkService: NetworkService) :
     BaseNewsViewModel() {
@@ -44,10 +47,10 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
                 }
                 .map { it.toString() }
                 .distinctUntilChanged()
+                .doOnNext { loadingState() }
             ) { t1, t2 ->
                 showLog("withLatestFrom $t1 ---- $t2")
                 showLog("withLatestFrom ${searchTag.value} ---- ${page.value}")
-                loadingState()
             }
             .switchMap {
                 newsService.getEverythingRemote(searchTag.value, page.value).toFlowable()
@@ -67,12 +70,13 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
                             showErrorLog("Got error from the server: $response")
                         }
                         return@filter false
-                    }.flatMap {
-                        it.body()?.articles?.toArticle(searchTag.value)?.let { it1 ->
-                            showLog("switchMap 1")
-                            newsService.insertAll(it1).toFlowable<Unit>()
-                        }
                     }
+            }
+            .switchMap {
+                it.body()?.articles?.toArticle(searchTag.value)?.let { it1 ->
+                    showLog("switchMap 1")
+                    newsService.insertAll(it1).toFlowable()
+                }
             }
             .switchMap {
                 showLog("switchMap 2 --- ${searchTag.value}")

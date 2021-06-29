@@ -3,6 +3,7 @@ package com.ramapitecusment.newsapi.services.database
 import androidx.room.*
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Maybe
 
 @Dao
 interface ArticleDao {
@@ -11,7 +12,7 @@ interface ArticleDao {
     fun insertArticle(article: Article): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(articles: List<Article>): Completable
+    fun insert(articles: List<Article>): Maybe<List<Long>?>
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     fun update(article: Article): Completable
