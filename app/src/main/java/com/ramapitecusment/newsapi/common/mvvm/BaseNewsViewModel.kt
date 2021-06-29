@@ -7,14 +7,16 @@ import android.os.Build
 import androidx.lifecycle.MutableLiveData
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.services.database.Article
+import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.subjects.PublishSubject
 
-abstract class BaseNewsViewModel(): BaseViewModel() {
+abstract class BaseNewsViewModel : BaseViewModel() {
 
     var articles = DataList<Article>()
     var page = Data(1)
-    var pageRx: PublishSubject<Int> = PublishSubject.create()
-    protected val isPageEnd = MutableLiveData(false)
+    var pageRx: PublishProcessor<Int> = PublishProcessor.create()
+    var isPageEndRx: PublishProcessor<Boolean> = PublishProcessor.create()
+    protected val isPageEnd = Visible(false)
 
     val isLoadingPage = Visible(false)
 

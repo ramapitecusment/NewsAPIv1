@@ -28,6 +28,7 @@ import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.mvvm.*
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
@@ -109,9 +110,9 @@ fun LifecycleOwner.bindTextChange(
     search: Text,
     page: Data<Int>,
     editText: EditText,
-    searchObservable: PublishSubject<String>,
-    pageObservable: PublishSubject<Int>,
-    getData: () -> Unit
+    searchObservable: PublishProcessor<String>,
+    pageObservable: PublishProcessor<Int>,
+//    getData: () -> Unit
 ): Disposable {
 
     val disposable = editText.textChanges()
@@ -131,7 +132,7 @@ fun LifecycleOwner.bindTextChange(
             searchObservable.onNext(it)
             // It must be second
             pageObservable.onNext(1)
-            getData()
+//            getData()
         }, {
             Log.e(LOG, "Error $it")
         })

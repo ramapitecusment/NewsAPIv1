@@ -1,6 +1,5 @@
 package com.ramapitecusment.newsapi.services.database
 
-import androidx.paging.PagingSource
 import androidx.room.*
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
@@ -20,19 +19,19 @@ interface ArticleDao {
     @Delete
     fun delete(article: Article): Completable
 
-    @Query("DELETE FROM article_table")
+    @Query("DELETE FROM articles")
     fun delete(): Completable
 
-    @Query("SELECT * FROM article_table")
+    @Query("SELECT * FROM articles")
     fun getAllArticles(): Flowable<List<Article>>
 
-    @Query("SELECT * FROM article_table WHERE searchTag =:searchTag")
-    fun getArticlesBySearchTag(searchTag: String): PagingSource<Int, List<Article>>
+    @Query("SELECT * FROM articles WHERE searchTag =:searchTag")
+    fun getArticlesBySearchTag(searchTag: String): Flowable<List<Article>>
 
-    @Query("SELECT * FROM article_table WHERE country =:country")
-    fun getArticlesByCountry(country: String): PagingSource<Int, List<Article>>
+    @Query("SELECT * FROM articles WHERE country =:country")
+    fun getArticlesByCountry(country: String): Flowable<List<Article>>
 
-    @Query("SELECT * FROM article_table WHERE isReadLater =:isReadLater")
+    @Query("SELECT * FROM articles WHERE isReadLater =:isReadLater")
     fun getArticlesByReadLater(isReadLater: Int = 1): Flowable<List<Article>>
 
 }

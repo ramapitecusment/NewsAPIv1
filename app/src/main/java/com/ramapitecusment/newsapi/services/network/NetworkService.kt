@@ -5,7 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 
-class NetworkService(){
+class NetworkService {
 
     fun isInternetAvailable(context: Context): Boolean {
         var result = false

@@ -22,7 +22,7 @@ fun initDI(context: Context) {
         modules(
             module {
                 single { ArticleDatabase.getDatabase(context) }
-                single { ArticleDatabase.getDatabase(context).databaseDao() }
+                single { ArticleDatabase.getDatabase(context).articleDao() }
 
                 single { NewsApiService() }
                 single { NewsApiService().retrofitApi }

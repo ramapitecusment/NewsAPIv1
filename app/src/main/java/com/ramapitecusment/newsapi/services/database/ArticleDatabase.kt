@@ -7,11 +7,11 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Article::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class ArticleDatabase : RoomDatabase() {
-    abstract fun databaseDao(): ArticleDao
+    abstract fun articleDao(): ArticleDao
 
     companion object {
         @Volatile

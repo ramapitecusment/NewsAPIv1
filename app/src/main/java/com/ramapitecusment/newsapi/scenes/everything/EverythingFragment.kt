@@ -13,8 +13,6 @@ import com.ramapitecusment.newsapi.common.mvvm.BaseFragment
 import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
 import com.ramapitecusment.newsapi.scenes.news.NewsFragmentDirections
 import com.ramapitecusment.newsapi.services.database.Article
-import com.ramapitecusment.newsapi.services.database.toArticleEntity
-import com.ramapitecusment.newsapi.services.database.toReadLaterArticle
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
@@ -52,16 +50,14 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
                 bindVisible(pageLoadingVisible, newsLayout.scrollProgressbar)
                 bindVisible(recyclerViewVisible, newsLayout.newsRecyclerView)
 
-                bindTextChange(searchTag, page, newsSearchEditText, searchTagRX, pageRx) {
-                    getFromRemote(searchTag.value, page.value)
-                    getFromDatabase(searchTag.value)
-                }.addToSubscription()
+                bindTextChange(searchTag, page, newsSearchEditText, searchTagRX, pageRx)
+                    .addToSubscription()
+
                 bindText(searchTag, newsSearchEditText)
                 bindRecyclerViewAdapter(articles, adapter)
 
                 bindPager(newsLayout.newsRecyclerView, isLoadingPage) {
                     increasePageValue()
-                    getFromRemote(searchTag.value, page.value)
                 }
             }
         }
@@ -80,8 +76,7 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
             Toast.LENGTH_SHORT
         ).show()
         Log.d(LOG, "readLaterClickListener: ${article.id}")
-        if (article.isReadLater == 1) viewModel.unreadLaterArticle(article.toArticleEntity())
-        else viewModel.readLaterArticle(article.toArticleEntity())
+        viewModel.readLaterButtonClicked(article)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
