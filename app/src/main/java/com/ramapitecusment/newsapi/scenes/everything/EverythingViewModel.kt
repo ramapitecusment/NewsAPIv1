@@ -3,23 +3,22 @@ package com.ramapitecusment.newsapi.scenes.everything
 import android.text.TextUtils
 import android.util.Log
 import com.ramapitecusment.newsapi.MainApplication
+import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
+import com.ramapitecusment.newsapi.common.mvvm.DataList
 import com.ramapitecusment.newsapi.common.mvvm.Text
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.network.NetworkService
 import com.ramapitecusment.newsapi.services.network.toArticle
 import com.ramapitecusment.newsapi.services.news.NewsService
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.processors.PublishProcessor
-import io.reactivex.rxjava3.schedulers.Schedulers
-import java.util.concurrent.TimeUnit
 
 class EverythingViewModel(private val newsService: NewsService, networkService: NetworkService) :
     BaseNewsViewModel() {
 
+    var articles = DataList<Article>()
     var searchTag = Text()
     var searchTagRX: PublishProcessor<String> = PublishProcessor.create()
 
@@ -54,91 +53,37 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
             }
             .switchMap {
                 newsService.getEverythingRemote(searchTag.value, page.value).toFlowable()
-                    .filter { response ->
-                        showLog(response.toString())
-                        if (response.isSuccessful) {
-                            showLog("Get from remote success: ${response.body()?.articles?.size}")
-                            if (!isPageEnd.value) {
-                                return@filter true
-                            } else {
-                                showLog("Get from remote success pageEnd: ${isPageEnd.value}")
-                                successState()
-                            }
-                            isPageEndRx.onNext((response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE))
-                        } else {
-                            errorState()
-                            showErrorLog("Got error from the server: $response")
-                        }
-                        return@filter false
+            }
+            .filter { response ->
+                showLog(response.toString())
+                if (response.isSuccessful) {
+                    showLog("Get from remote success: ${response.body()?.articles?.size}")
+                    if (!isPageEnd.value) {
+                        return@filter true
+                    } else {
+                        showLog("Get from remote success pageEnd: ${isPageEnd.value}")
+                        successState()
                     }
-            }
-            .switchMap {
-                it.body()?.articles?.toArticle(searchTag.value)?.let { it1 ->
-                    showLog("switchMap 1")
-                    newsService.insertAll(it1).toFlowable()
+                    isPageEndRx.onNext((response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE))
+                } else {
+                    errorState()
+                    showErrorLog("Got error from the server: $response")
                 }
+                return@filter false
             }
-            .switchMap {
-                showLog("switchMap 2 --- ${searchTag.value}")
-                newsService.getArticlesBySearchTag(searchTag.value)
+            .map { response ->
+                response.body()?.articles?.toArticle(searchTag.value)?.let { it }
+            }
+            .switchMap { articleList ->
+                newsService.insertAll(articleList).toFlowable<Unit>()
             }
             .subscribeOnIoObserveMain()
             .subscribe({
-                showLog("On Next combine latest: ${it.size} - ${searchTag.value}")
-                isLoadingPage.mutableValue = false
-                if (it.isNotEmpty()) {
-                    articles.mutableValue = it.distinct()
-                    successState()
-                }
+                showLog("Insert Complete")
             }, {
-                internetErrorState()
-                showErrorLog("Error getFromRemote: $it")
+                showErrorLog("Insert Error: $it")
             })
             .addToSubscription()
-//            .doOnNext { response ->
-//                showLog(response.toString())
-//                if (response.isSuccessful) {
-//                    showLog("Get from remote success: ${response.body()?.articles?.size}")
-//                    if (!isPageEnd.value) {
-//                        showLog("I am in insert module")
-//                        response.body()?.articles?.let {
-//                            newsService.insertAll(it.toArticle(searchTag.value))
-//                                .doOnComplete {
-//                                    showLog("Inert complete")
-//                                }
-//                        }
-//                    } else {
-//                        showLog("Get from remote success pageEnd: ${isPageEnd.value}")
-//                        successState()
-//                    }
-//                    isPageEndRx.onNext((response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE))
-//                } else {
-//                    errorState()
-//                    showErrorLog("Got error from the server: $response")
-//                }
-//            }
-//                    .doOnError {
-//                        internetErrorState()
-//                        showErrorLog("Error getFromRemote: $it")
-//                    }
-//                    .switchMap {
-//                        newsService.getArticlesBySearchTag(searchTag.value)
-//                    }
-//                    .distinct()
-//                    .subscribeOnIoObserveMain()
-//                    .subscribe({
-//                        showLog("On Next combine latest: ${it.size} - ${searchTag.value}")
-//                        isLoadingPage.mutableValue = false
-//                        if (it.isNotEmpty()) {
-//                            articles.mutableValue = it.distinct()
-//                            successState()
-//                        }
-//                    }, {
-//                        internetErrorState()
-//                        showErrorLog("Error getFromRemote: $it")
-//                    })
-//                    .addToSubscription()
-
 
         isPageEndRx
             .subscribeOnIoObserveMain()
@@ -152,81 +97,31 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
                 })
             .addToSubscription()
 
-//        pageRx
-//            .doOnNext { page ->
-//                showLog("doOnNext pageRx: $page")
-//                this.page.mutableValue = page
-//                if (page != 1) pageLoadingState()
-//            }
-//            .doOnError { showErrorLog("pageRx Error: $it") }
-//            .switchMap {
-//                newsService.getEverythingRemote(searchTag.value, it).toFlowable()
-//            }
-//            .doOnNext { response ->
-//                showLog(response.toString())
-//                if (response.isSuccessful && !isPageEnd.value) {
-//                    response.body()?.articles?.let {
-//                        newsService.insertAll(it.toArticle(searchTag.value))
-//                    }
-//                }
-//            }
-//            .subscribeOnIoObserveMain()
-//            .subscribe({ response ->
-//                showLog(response.toString())
-//                if (response.isSuccessful) {
-//                    showLog("Get from remote success: ${response.body()?.articles?.size}")
-//                    if (isPageEnd.value) {
-//                        showLog("Get from remote success pageEnd: ${isPageEnd.value}")
-//                        successState()
-//                    }
-//                    isPageEnd.mutableValue =
-//                        (response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE)
-//                } else {
-//                    errorState()
-//                    showErrorLog("Got error from the server: $response")
-//                }
-//
-//            }, {
-//                internetErrorState()
-//                showErrorLog("Error getFromRemote: $it")
-//            })
-//            .addToSubscription()
-//
-//        searchTagRX
-//            .filter { charSequence ->
-//                showLog("before filter rxSearch -$charSequence- ${internetErrorVisible.value}")
-//                !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
-//            }
-//            .map { it.toString() }
-//            .distinctUntilChanged()
-//            .doOnNext {
-//                showLog("doOnNext searchTagRX: $it")
-//                loadingState()
-//            }
-//            .doOnError { showErrorLog("searchTagRX Error: $it") }
-//            .switchMap { search ->
-//                newsService.getEverythingRemote(search, 1).toFlowable()
-//            }
-//            .doOnError {
-//                internetErrorState()
-//                showErrorLog("Error getFromRemote: $it")
-//            }
-//            .switchMap {
-//                newsService.getArticlesBySearchTag(searchTag.value)
-//            }
-//            .subscribeOnIoObserveMain()
-//            .subscribe({
-//                showLog("On Next combine latest: ${it.size} - ${searchTag.value}")
-//                isLoadingPage.mutableValue = false
-//                if (it.isNotEmpty()) {
-//                    articles.mutableValue = it.distinct()
-//                    successState()
-//                }
-//            }, {
-//                internetErrorState()
-//                showErrorLog("Error getFromRemote: $it")
-//            })
-//            .addToSubscription()
+        searchTagRX
+            .filter { charSequence ->
+                !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
+            }
+            .map { it.toString() }
+            .distinctUntilChanged()
+            .switchMap {
+                showLog("switchMap 2 --- ${searchTag.value}")
+                newsService.getArticlesBySearchTag(searchTag.value)
+            }
+            .map { articleList ->
+                articleList.distinctBy { listOf(it.title, it.publishedAt, it.author) }
+            }
+            .subscribeOnIoObserveMain()
+            .subscribe({ articleList ->
+                showLog("On Next combine latest: ${articleList.size} - ${searchTag.value}")
+                isLoadingPage.mutableValue = false
+                if (articleList.isNotEmpty()) {
+                    articles.mutableValue = articleList
+                    successState()
+                }
+            }, {
+                internetErrorState()
+                showErrorLog("Error getFromRemote: $it")
+            })
     }
 
     fun deleteAllClicked() {
@@ -242,6 +137,7 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
     }
 
     fun readLaterButtonClicked(article: Article) {
+        showToast(getString(R.string.toast_added_read_later))
         if (article.isReadLater == 1) article.isReadLater = 0
         else if (article.isReadLater == 0) article.isReadLater = 1
         update(article)
@@ -269,53 +165,11 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
         pageRx.onNext(1)
     }
 
-    override fun onCleared() {
-        super.onCleared()
-//        disposable?.dispose()
+    fun increasePageValue() {
+        showLog("${articles.value.size} - ${(articles.value.size / PAGE_SIZE_VALUE) + 1}")
+        page.mutableValue = (articles.value.size / PAGE_SIZE_VALUE) + 1
+        pageRx.onNext((articles.value.size / PAGE_SIZE_VALUE) + 1)
+        isLoadingPage.mutableValue = true
     }
-
-//    fun getFromRemote(search: String, page: Int) {
-//        newsService.getEverythingRemote(search, page)
-//            .doOnSuccess { response ->
-//                showLog(response.toString())
-//                if (response.isSuccessful) {
-//                    showLog("Get from remote success: ${response.body()?.articles?.size}")
-//                    if (!isPageEnd.value) {
-//                        response.body()?.articles?.let { newsService.insertAll(it.toArticle(search)) }
-//                    } else {
-//                        showLog("Get from remote success pageEnd: ${isPageEnd.value}")
-//                        successState()
-//                    }
-//                    isPageEnd.mutableValue =
-//                        (response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE)
-//                } else {
-//                    errorState()
-//                    showErrorLog("Got error from the server: $response")
-//                }
-//            }
-//            .doOnError {
-//                internetErrorState()
-//                showErrorLog("Error getFromRemote: $it")
-//            }
-//            .subscribeOnSingleObserveMain()
-//            .subscribe()
-//            .addToSubscription()
-//    }
-
-//    fun getFromDatabase(search: String) {
-//        disposable?.dispose()
-//        disposable = newsService.getArticlesBySearchTag(search)
-//            .subscribeOnSingleObserveMain()
-//            .subscribe({
-//                showLog("On Next combine latest: ${it.size} - $search")
-//                isLoadingPage.mutableValue = false
-//                if (it.isNotEmpty()) {
-//                    articles.mutableValue = it.distinct()
-//                    successState()
-//                }
-//            }, {
-//                showErrorLog("Error getArticlesBySearchTag: it")
-//            })
-//    }
 
 }

@@ -12,7 +12,6 @@ import io.reactivex.rxjava3.subjects.PublishSubject
 
 abstract class BaseNewsViewModel : BaseViewModel() {
 
-    var articles = DataList<Article>()
     var page = Data(1)
     var pageRx: PublishProcessor<Int> = PublishProcessor.create()
     var isPageEndRx: PublishProcessor<Boolean> = PublishProcessor.create()
@@ -25,14 +24,6 @@ abstract class BaseNewsViewModel : BaseViewModel() {
     val internetErrorVisible = Visible(false)
     val pageLoadingVisible = Visible(false)
     val recyclerViewVisible = Visible(false)
-
-
-    fun increasePageValue() {
-        showLog("${articles.value.size} - ${(articles.value.size / PAGE_SIZE_VALUE) + 1}")
-        page.mutableValue = (articles.value.size / PAGE_SIZE_VALUE) + 1
-        pageRx.onNext((articles.value.size / PAGE_SIZE_VALUE) + 1)
-        isLoadingPage.mutableValue = true
-    }
 
     protected fun successState() {
         recyclerViewVisible.mutableValue = true

@@ -25,7 +25,13 @@ class NewsRecyclerViewAdapter(
         holder.bind(getItem(position), articleClickListener, readLaterClickListener)
     }
 
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        recyclerView.
+    }
+
     class ViewHolder(private val binding: NewsItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        Compos
 
         fun bind(
             article: Article,
@@ -50,6 +56,10 @@ class NewsRecyclerViewAdapter(
             binding.readLaterImageButton.setOnClickListener {
                 readLaterClickListener(article)
             }
+        }
+
+        fun dispose() {
+
         }
 
         companion object {

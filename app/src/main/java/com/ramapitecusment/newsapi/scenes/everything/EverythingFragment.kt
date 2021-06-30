@@ -41,7 +41,8 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
         }
     }
 
-    private fun bindViewModel() {
+    override fun bindViewModel() {
+        super.bindViewModel()
         with(viewModel) {
             with(binding) {
                 bindVisible(loadingVisible, newsLayout.progressbar)
@@ -63,19 +64,11 @@ class EverythingFragment : BaseFragment<EverythingViewModel>(R.layout.fragment_e
         }
     }
 
-
     private val articleClickListener: (article: Article) -> Unit = { article ->
-        Toast.makeText(requireContext(), "articleClickListener", Toast.LENGTH_SHORT).show()
         findNavController().navigate(NewsFragmentDirections.toDetails(article))
     }
 
     private val readLaterClickListener: (article: Article) -> Unit = { article ->
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.toast_added_read_later),
-            Toast.LENGTH_SHORT
-        ).show()
-        Log.d(LOG, "readLaterClickListener: ${article.id}")
         viewModel.readLaterButtonClicked(article)
     }
 

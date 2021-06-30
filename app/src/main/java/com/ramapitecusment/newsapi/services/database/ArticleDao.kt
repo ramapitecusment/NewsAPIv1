@@ -12,7 +12,10 @@ interface ArticleDao {
     fun insertArticle(article: Article): Completable
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(articles: List<Article>): Maybe<List<Long>?>
+    fun insert(articles: List<Article>): Completable
+
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    fun insert(articles: List<Article>): Maybe<List<Long>?>
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     fun update(article: Article): Completable

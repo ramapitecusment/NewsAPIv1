@@ -7,10 +7,8 @@ import android.view.MenuItem
 import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.widget.*
+import androidx.annotation.MainThread
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -32,6 +30,7 @@ import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 fun LifecycleOwner.bindVisible(liveData: Visible, view: View, asInvisible: Boolean = false) =
     liveData.observe(this, {
@@ -52,6 +51,9 @@ fun LifecycleOwner.bindText(liveData: Text, textView: TextView, subject: Publish
     liveData.observe(this, {
         textView.text = it
     })
+
+fun <T>LifecycleOwner.bindCommand(command: TCommand<T>, block: (T) -> Unit) =
+    command.observe(this, Observer(block))
 
 fun LifecycleOwner.bindMenuItemVisibility(liveData: Visible, menuItem: MenuItem) =
     liveData.observe(this, { menuItem.isVisible = it })
@@ -186,7 +188,6 @@ fun LifecycleOwner.bindPager(
             val layoutManager = recyclerView.layoutManager as LinearLayoutManager
             val totalItemCount = layoutManager.itemCount
             val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-//            Log.d(LOG, "onScrolled: $totalItemCount - $lastVisibleItem")
             if (!isLoading && (totalItemCount <= (lastVisibleItem + 1))) {
                 Log.d(LOG, "onScrolled in if: $totalItemCount - $lastVisibleItem")
                 changePage()
