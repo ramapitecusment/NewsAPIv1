@@ -1,9 +1,8 @@
 package com.ramapitecusment.newsapi.common
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageButton
-import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -25,13 +24,7 @@ class NewsRecyclerViewAdapter(
         holder.bind(getItem(position), articleClickListener, readLaterClickListener)
     }
 
-    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-        super.onDetachedFromRecyclerView(recyclerView)
-        recyclerView.
-    }
-
     class ViewHolder(private val binding: NewsItemBinding) : RecyclerView.ViewHolder(binding.root) {
-        Compos
 
         fun bind(
             article: Article,
@@ -56,10 +49,6 @@ class NewsRecyclerViewAdapter(
             binding.readLaterImageButton.setOnClickListener {
                 readLaterClickListener(article)
             }
-        }
-
-        fun dispose() {
-
         }
 
         companion object {

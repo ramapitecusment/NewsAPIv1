@@ -104,7 +104,6 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
             .map { it.toString() }
             .distinctUntilChanged()
             .switchMap {
-                showLog("switchMap 2 --- ${searchTag.value}")
                 newsService.getArticlesBySearchTag(searchTag.value)
             }
             .map { articleList ->
@@ -130,6 +129,7 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Delete success")
+                resetPageValue()
             }, { error ->
                 showErrorLog("Delete error: $error")
             })
@@ -138,9 +138,23 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
 
     fun readLaterButtonClicked(article: Article) {
         showToast(getString(R.string.toast_added_read_later))
-        if (article.isReadLater == 1) article.isReadLater = 0
-        else if (article.isReadLater == 0) article.isReadLater = 1
-        update(article)
+        var isReadLater = article.isReadLater
+        if (article.isReadLater == 1) isReadLater = 0
+        else if (article.isReadLater == 0) isReadLater = 1
+        update(Article(
+            article.id,
+            article.author,
+            article.content,
+            article.description,
+            article.publishedAt,
+            article.source,
+            article.title,
+            article.url,
+            article.urlToImage,
+            article.searchTag,
+            article.country,
+            isReadLater
+        ))
     }
 
     private fun update(article: Article) {

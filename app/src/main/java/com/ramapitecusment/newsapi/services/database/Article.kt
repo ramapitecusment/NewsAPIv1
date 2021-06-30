@@ -20,5 +20,5 @@ data class Article(
     val urlToImage: String?,
     val searchTag: String?,
     val country: String?,
-    var isReadLater: Int = 0
+    val isReadLater: Int = 0
 ) : Parcelable

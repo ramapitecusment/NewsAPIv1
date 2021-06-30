@@ -52,7 +52,7 @@ fun LifecycleOwner.bindText(liveData: Text, textView: TextView, subject: Publish
         textView.text = it
     })
 
-fun <T>LifecycleOwner.bindCommand(command: TCommand<T>, block: (T) -> Unit) =
+fun <T> LifecycleOwner.bindCommand(command: TCommand<T>, block: (T) -> Unit) =
     command.observe(this, Observer(block))
 
 fun LifecycleOwner.bindMenuItemVisibility(liveData: Visible, menuItem: MenuItem) =
