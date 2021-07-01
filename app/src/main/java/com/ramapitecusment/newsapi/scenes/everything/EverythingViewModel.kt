@@ -13,6 +13,7 @@ import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.network.NetworkService
 import com.ramapitecusment.newsapi.services.network.toArticle
 import com.ramapitecusment.newsapi.services.news.NewsService
+import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.processors.PublishProcessor
 
 class EverythingViewModel(private val newsService: NewsService, networkService: NetworkService) :
@@ -30,14 +31,6 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
         }
 
         pageRx
-            .doOnNext { page ->
-                showLog("doOnNext pageRx: $page")
-                if (page == 1) {
-                    loadingState()
-                    isPageEndRx.onNext(false)
-                } else pageLoadingState()
-            }
-            .doOnError { showErrorLog("pageRx Error: $it") }
             .withLatestFrom(searchTagRX
                 .filter { charSequence ->
                     showLog("before filter rxSearch -$charSequence- ${internetErrorVisible.value}")
@@ -54,11 +47,12 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
                 newsService.getEverythingRemote(searchTag.value, page.value).toFlowable()
             }
             .filter { response ->
+                var goFuther = false
                 showLog(response.toString())
                 if (response.isSuccessful) {
                     showLog("Get from remote success: ${response.body()?.articles?.size}")
                     if (!isPageEnd.value) {
-                        return@filter true
+                        goFuther = true
                     } else {
                         showLog("Get from remote success pageEnd: ${isPageEnd.value}")
                         successState()
@@ -67,29 +61,16 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
                 } else {
                     errorState()
                     showErrorLog("Got error from the server: $response")
+                    goFuther = false
                 }
-                return@filter false
+                return@filter goFuther
             }
             .map { response ->
-                response.body()?.articles?.toArticle(searchTag.value)?.let { it }
+                response.body()?.articles?.toArticle(searchTag = searchTag.value)?.let { it }
             }
             .switchMap { articleList ->
-                newsService.insertAll(articleList).toFlowable<Unit>()
+                newsService.insertAll(articleList).andThen(Flowable.just(1))
             }
-            .subscribeOnIoObserveMain()
-            .subscribe({
-                showLog("Insert Complete")
-            }, {
-                showErrorLog("Insert Error: $it")
-            })
-            .addToSubscription()
-
-        searchTagRX
-            .filter { charSequence ->
-                !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
-            }
-            .map { it.toString() }
-            .distinctUntilChanged()
             .switchMap {
                 newsService.getArticlesBySearchTag(searchTag.value)
             }

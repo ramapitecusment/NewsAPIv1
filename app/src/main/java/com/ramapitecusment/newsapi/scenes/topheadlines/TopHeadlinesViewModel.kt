@@ -18,36 +18,13 @@ import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
-class TopHeadlinesViewModel(
-    private val newsService: NewsService,
-    private val networkService: NetworkService
-) : BaseNewsViewModel() {
+class TopHeadlinesViewModel(private val topHeadlinesService: TopHeadlinesService, networkService: NetworkService) :
+    BaseNewsViewModel() {
     private var country = Text()
     private var countryRX: PublishProcessor<String> = PublishProcessor.create()
 
     init {
-        if (networkService.isInternetAvailable(MainApplication.instance)) {
-            showLog("Connected to internet")
-            countryRX.onNext("ru")
-            pageRx.onNext(1)
-            country.mutableValue = "ru"
-            loadingState()
-        } else {
-            internetErrorState()
-            showErrorLog("There os no Internet connection")
-        }
-
         pageRx
-            .doOnNext { page ->
-                showLog("doOnNext pageRx: $page")
-                if (page == 1) {
-                    loadingState()
-                    isPageEndRx.onNext(false)
-                } else pageLoadingState()
-            }
-            .doOnError {
-                showLog("doOnError $it")
-            }
             .withLatestFrom(countryRX
                 .filter { charSequence ->
                     showLog("before filter countryRX -$charSequence- ${internetErrorVisible.value}")
@@ -59,13 +36,15 @@ class TopHeadlinesViewModel(
                 showLog("withLatestFrom ${country.value} ---- ${page.value}")
             }
             .switchMap {
-                newsService.getTopHeadlinesRemote(country.value, page.value).toFlowable()
+                showLog("pager")
+                topHeadlinesService.getTopHeadlinesRemote(country.value, page.value).toFlowable()
             }
             .filter { response ->
                 showLog(response.toString())
                 if (response.isSuccessful) {
                     showLog("Get from remote success: ${response.body()?.articles?.size}")
                     if (!isPageEnd.value) {
+                        showLog("In isPageEnd")
                         return@filter true
                     } else {
                         showLog("Get from remote success pageEnd: ${isPageEnd.value}")
@@ -79,77 +58,94 @@ class TopHeadlinesViewModel(
                 return@filter false
             }
             .map { response ->
-                response.body()?.articles?.toArticle(country.value)?.let { it }
+                showLog("In map")
+                response.body()?.articles?.toArticle(country = country.value)?.let { it }
             }
             .switchMap { articleList ->
-                newsService.insertAll(articleList).toFlowable<Unit>()
-            }
-            .subscribeOnIoObserveMain()
-            .subscribe({
-                showLog("Insert Complete")
-            }, {
-                showErrorLog("Insert Error: $it")
-            })
-            .addToSubscription()
-
-        Flowable
-            .interval(5, TimeUnit.SECONDS)
-            .switchMap {
-                newsService.getTopHeadlinesRemote(country.value, 1).toFlowable()
-            }
-            .doOnNext {
-                showLog("$it")
-            }
-            .map { response ->
-                response.body()?.articles?.toArticle(country.value)?.let { it }
-            }
-            .switchMap { articleList ->
-                newsService.insertAll(articleList).toFlowable<Unit>()
-            }
-            .subscribeOnIoObserveMain()
-            .subscribe({
-                showLog("Insert Complete")
-            }, {
-                showErrorLog("Insert Error: $it")
-            })
-            .addToSubscription()
-
-        countryRX
-            .filter { charSequence ->
-                showLog("before filter countryRX -$charSequence- ${internetErrorVisible.value}")
-                !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
+                showLog("In switchMap")
+                topHeadlinesService.insertAll(articleList).andThen(Flowable.just(1))
             }
             .switchMap {
-                newsService.getArticlesByCountry(it)
+                topHeadlinesService.getArticlesByCountry(country.value)
             }
-            .subscribeOnIoObserveMain()
+            .map { articleList ->
+                articleList.distinctBy { listOf(it.title, it.publishedAt, it.author) }
+            }
             .subscribe({
                 showLog("On Next interval: ${it.size}")
                 isLoadingPage.mutableValue = false
                 if (it.isNotEmpty()) {
-                    articles.mutableValue = it.distinct()
+                    articles.mutableValue = it
                     successState()
                 }
             }, {
                 showErrorLog("Error interval: $it")
             })
             .addToSubscription()
-    }
 
-    private fun insert(articles: List<Article>) {
-        newsService.insertAll(articles)
-            .subscribeOnIoObserveMain()
-            .subscribe(
-                {
-                    showLog("Insert Complete")
-                }, { error ->
-                    showErrorLog("Insert error: $error")
-                }).addToSubscription()
+//        Flowable
+//            .interval(5, TimeUnit.SECONDS)
+//            .switchMap {
+//                newsService.getTopHeadlinesRemote(country.value, 1).toFlowable()
+//            }
+//            .map { response ->
+//                response.body()?.articles?.toArticle(country = country.value)?.let { it }
+//            }
+//            .switchMap { articleList ->
+//                newsService.insertAll(articleList).andThen(Flowable.just(1))
+//            }
+//            .switchMap {
+//                newsService.getArticlesByCountry(country.value)
+//            }
+//            .map { articleList ->
+//                articleList.distinctBy { listOf(it.title, it.publishedAt, it.author) }
+//            }
+//            .subscribeOnIoObserveMain()
+//            .subscribe({
+//                showLog("On Next interval: ${it.size}")
+//                isLoadingPage.mutableValue = false
+//                if (it.isNotEmpty()) {
+//                    articles.mutableValue = it
+//                    successState()
+//                }
+//            }, {
+//                showErrorLog("Error interval: $it")
+//            })
+//            .addToSubscription()
+
+//        countryRX
+//            .filter { charSequence ->
+//                showLog("before filter countryRX -$charSequence- ${internetErrorVisible.value}")
+//                !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
+//            }
+//            .doOnNext { resetPageValue() }
+//            .map { it.toString() }
+//            .doAfterNext {
+//                country.mutableValue = it
+//            }
+//            .subscribeOnIoObserveMain()
+//            .subscribe({
+//
+//            }, {
+//                showErrorLog("Error countryRX: $it")
+//            })
+//            .addToSubscription()
+
+        if (networkService.isInternetAvailable(MainApplication.instance)) {
+            showLog("Connected to internet")
+            pageRx.onNext(1)
+            countryRX.onNext("ru")
+            country.mutableValue = "ru"
+            loadingState()
+        } else {
+            internetErrorState()
+            showErrorLog("There is no Internet connection")
+        }
     }
 
     fun deleteAllClicked() {
-        newsService
-            .deleteAllBySearchTag()
+        topHeadlinesService
+            .deleteAllByCountry()
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Delete success")
@@ -186,7 +182,7 @@ class TopHeadlinesViewModel(
 
     private fun update(article: Article) {
         Log.d(LOG, "update: ${article.id}")
-        newsService
+        topHeadlinesService
             .update(article)
             .subscribeOnIoObserveMain()
             .subscribe({
@@ -198,7 +194,7 @@ class TopHeadlinesViewModel(
     }
 
     private fun resetPageValue() {
-        page.mutableValue = 1
+//        page.mutableValue = 1
         pageRx.onNext(1)
     }
 }

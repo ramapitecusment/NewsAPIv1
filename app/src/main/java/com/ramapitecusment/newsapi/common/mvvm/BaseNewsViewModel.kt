@@ -21,24 +21,29 @@ abstract class BaseNewsViewModel : BaseViewModel() {
 
     val isLoadingPage = Visible(false)
 
-    fun increasePageValue() {
-        showLog("${articles.value.size} - ${(articles.value.size / PAGE_SIZE_VALUE) + 1}")
-        page.mutableValue = (articles.value.size / PAGE_SIZE_VALUE) + 1
-        pageRx.onNext((articles.value.size / PAGE_SIZE_VALUE) + 1)
-        isLoadingPage.mutableValue = true
-    }
-
     init {
         isPageEndRx
             .subscribeOnIoObserveMain()
-            .subscribe(
-                { isPageEnd ->
-                    showLog("isPageEnd --- $isPageEnd")
-                    this.isPageEnd.mutableValue = isPageEnd
-                },
-                {
-                    showErrorLog("isPageEnd Error: $it")
-                })
+            .subscribe({ isPageEnd ->
+                showLog("isPageEnd --- $isPageEnd")
+                this.isPageEnd.mutableValue = isPageEnd
+            }, {
+                showErrorLog("isPageEnd Error: $it")
+            })
+            .addToSubscription()
+
+        pageRx
+            .subscribeOnIoObserveMain()
+            .subscribe({ page ->
+                showLog("doOnNext pageRx: $page")
+                this.page.mutableValue = page
+                if (page == 1) {
+                    loadingState()
+                    isPageEndRx.onNext(false)
+                } else pageLoadingState()
+            }, {
+                showLog("doOnError $it")
+            })
             .addToSubscription()
     }
 
@@ -47,6 +52,14 @@ abstract class BaseNewsViewModel : BaseViewModel() {
     val internetErrorVisible = Visible(false)
     val pageLoadingVisible = Visible(false)
     val recyclerViewVisible = Visible(false)
+
+
+    fun increasePageValue() {
+        showLog("${articles.value.size} - ${(articles.value.size / PAGE_SIZE_VALUE) + 1}")
+//        page.mutableValue = (articles.value.size / PAGE_SIZE_VALUE) + 1
+        pageRx.onNext((articles.value.size / PAGE_SIZE_VALUE) + 1)
+        isLoadingPage.mutableValue = true
+    }
 
     protected fun successState() {
         recyclerViewVisible.mutableValue = true

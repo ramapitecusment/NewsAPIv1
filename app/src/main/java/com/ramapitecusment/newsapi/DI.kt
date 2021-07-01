@@ -4,6 +4,7 @@ import android.content.Context
 import com.ramapitecusment.newsapi.scenes.everything.EverythingViewModel
 import com.ramapitecusment.newsapi.scenes.newsDetails.NewsDetailsViewModel
 import com.ramapitecusment.newsapi.scenes.readLater.ReadLaterViewModel
+import com.ramapitecusment.newsapi.scenes.topheadlines.TopHeadlinesService
 import com.ramapitecusment.newsapi.scenes.topheadlines.TopHeadlinesViewModel
 import com.ramapitecusment.newsapi.services.database.ArticleDatabase
 import com.ramapitecusment.newsapi.services.network.NetworkService
@@ -29,6 +30,7 @@ fun initDI(context: Context) {
                 single { NetworkService() }
 
                 single { NewsService(get(), get()) }
+                single { TopHeadlinesService(get(), get()) }
 
                 viewModel { EverythingViewModel(get(), get()) }
                 viewModel { TopHeadlinesViewModel(get(), get()) }
