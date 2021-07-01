@@ -31,10 +31,19 @@ class NewsService(private val newsApi: NewsApi, private val articleDao: ArticleD
     fun getArticlesByCountry(country: String): Flowable<List<Article>> =
         articleDao.getArticlesByCountry(country)
 
-    fun deleteAll(): Completable = articleDao.delete()
+    fun update(article: Article): Completable = articleDao.update(article)
+
+    fun updateArticles(articles: List<Article>): Completable = articleDao.updateArticles(articles)
 
     fun delete(article: Article): Completable = articleDao.delete(article)
 
-    fun update(article: Article): Completable = articleDao.update(article)
+    fun deleteAll(): Completable = articleDao.delete()
+
+    fun deleteAllBySearchTag(searchTag: String = ""): Completable =
+        articleDao.deleteAllBySearchTag(searchTag)
+
+    fun deleteAllByCountry(country: String= ""): Completable = articleDao.deleteAllByCountry(country)
+
+    fun deleteAllByReadLater(): Completable = articleDao.deleteAllByReadLater()
 
 }

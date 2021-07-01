@@ -40,59 +40,52 @@ class TopHeadlinesFragment : BaseFragment<TopHeadlinesViewModel>(R.layout.fragme
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        initViews()
-//        bindViewModel()
+        initViews()
+        bindViewModel()
     }
 
-//    private fun initViews() {
-//        adapter = NewsRecyclerViewAdapter(articleClickListener, readLaterClickListener)
-//        binding.newsLayout.newsRecyclerView.adapter = adapter
-//    }
-//
-//    private fun bindViewModel() {
-//        with(viewModel) {
-//            with(binding) {
-//                bindVisible(loadingVisible, newsLayout.progressbar)
-//                bindVisible(errorVisible, newsLayout.noArticleTextView)
-//                bindVisible(internetErrorVisible, newsLayout.internetProblemsTextView)
-//                bindVisible(pageLoadingVisible, newsLayout.scrollProgressbar)
-//                bindVisible(recyclerViewVisible, newsLayout.newsRecyclerView)
-//
-//                bindRecyclerViewAdapter(articles, adapter)
-//
-//                bindPager(newsLayout.newsRecyclerView, isLoadingPage) { increasePageValue() }
-//            }
-//        }
-//    }
-//
-//    private val articleClickListener: (article: Article) -> Unit = { article ->
-//        Toast.makeText(requireContext(), "articleClickListener", Toast.LENGTH_SHORT).show()
-//        findNavController().navigate(NewsFragmentDirections.toDetails(article))
-//    }
-//
-//    private val readLaterClickListener: (article: Article) -> Unit = { article ->
-//        Toast.makeText(
-//            requireContext(),
-//            getString(R.string.toast_added_read_later),
-//            Toast.LENGTH_SHORT
-//        ).show()
-//        Log.d(LOG, "readLaterClickListener: ${article.id}")
-//        if (article.isReadLater == 1) viewModel.unreadLaterArticle(article.toTopHeadlines())
-//        else viewModel.readLaterArticle(article.toTopHeadlines())
-//    }
-//
-//    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-//        inflater.inflate(R.menu.menu_everythig, menu)
-//        super.onCreateOptionsMenu(menu, inflater)
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        when (item.itemId) {
-//            R.id.delete -> {
-//                viewModel.deleteAllClicked()
-//                return true
-//            }
-//        }
-//        return super.onOptionsItemSelected(item)
-//    }
+    private fun initViews() {
+        adapter = NewsRecyclerViewAdapter(articleClickListener, readLaterClickListener)
+        binding.newsLayout.newsRecyclerView.adapter = adapter
+    }
+
+    override fun bindViewModel() {
+        super.bindViewModel()
+        with(viewModel) {
+            with(binding) {
+                bindVisible(loadingVisible, newsLayout.progressbar)
+                bindVisible(errorVisible, newsLayout.noArticleTextView)
+                bindVisible(internetErrorVisible, newsLayout.internetProblemsTextView)
+                bindVisible(pageLoadingVisible, newsLayout.scrollProgressbar)
+                bindVisible(recyclerViewVisible, newsLayout.newsRecyclerView)
+
+                bindRecyclerViewAdapter(articles, adapter)
+
+                bindPager(newsLayout.newsRecyclerView, isLoadingPage) { increasePageValue() }
+            }
+        }
+    }
+
+    private val articleClickListener: (article: Article) -> Unit = { article ->
+        findNavController().navigate(NewsFragmentDirections.toDetails(article))
+    }
+
+    private val readLaterClickListener: (article: Article) -> Unit = { article ->
+        viewModel.readLaterButtonClicked(article)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_everythig, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.delete -> {
+                viewModel.deleteAllClicked()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
 }

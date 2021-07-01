@@ -11,30 +11,32 @@ class NewsDetailsViewModel(
     private val networkService: NetworkService
 ) : BaseViewModel() {
 
-//    val articles = DataList<Article>()
-//
-//    fun update(article: Article) {
-//        if (article.searchTag.equals("NaN")) updateArticleTopHeadline(article)
-//        else if (article.country.equals("NaN")) updateArticleEntity(article)
-//    }
-//
-//    private fun updateArticleTopHeadline(article: Article) {
-//        topHeadlinesService.update(article.toTopHeadlines())
-//            .subscribeOnIoObserveMain()
-//            .subscribe({
-//                showLog("Update success")
-//            }, { error ->
-//                showErrorLog("Update error: $error")
-//            }).addToSubscription()
-//    }
-//
-//    private fun updateArticleEntity(article: Article) {
-//        everythingService.update(article.toArticleEntity())
-//            .subscribeOnIoObserveMain()
-//            .subscribe({
-//                showLog("Update success")
-//            }, { error ->
-//                showErrorLog("Update error: $error")
-//            }).addToSubscription()
-//    }
+    val articles = DataList<Article>()
+
+    fun update(article: Article) {
+        val isReadLater = article.isReadLater
+        newsService.update(
+            Article(
+                article.id,
+                article.author,
+                article.content,
+                article.description,
+                article.publishedAt,
+                article.source,
+                article.title,
+                article.url,
+                article.urlToImage,
+                article.searchTag,
+                article.country,
+                isReadLater
+            )
+        )
+            .subscribeOnIoObserveMain()
+            .subscribe({
+                showLog("Update success")
+            }, { error ->
+                showErrorLog("Update error: $error")
+            })
+            .addToSubscription()
+    }
 }

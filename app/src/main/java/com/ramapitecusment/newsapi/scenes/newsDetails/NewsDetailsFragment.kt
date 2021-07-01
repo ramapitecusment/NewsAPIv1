@@ -22,48 +22,50 @@ class NewsDetailsFragment : BaseFragment<NewsDetailsViewModel>(R.layout.fragment
         super.onViewCreated(view, savedInstanceState)
 
         article = args.article
-//        initViews(article)
-//        bindViews(article)
+        initViews()
+        bindViewModel()
     }
 
-//    private fun initViews(article: Article) {
-//        binding.readLaterImageButton.setOnClickListener {
-//            if (article.isReadLater == 1) {
-//                article.isReadLater = 0
-//                binding.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_white)
-//            } else if (article.isReadLater == 0) {
-//                article.isReadLater = 1
-//                binding.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_red)
-//            }
-//        }
-//    }
-//
-//    private fun bindViews(article: Article) {
-//        viewModel.articles.observe(viewLifecycleOwner) {
-//            with(binding) {
-//                titleTextView.text = article.title
-//                descriptionTextView.text = article.description
-//                newsImageView.glideImage(article.urlToImage, binding.imageProgressBar)
-//
-//                if (article.isReadLater == 1)
-//                    readLaterImageButton.setImageResource(R.drawable.ic_bookmark_red)
-//                else
-//                    readLaterImageButton.setImageResource(R.drawable.ic_bookmark_white)
-//
-//                sourceTextView.text = article.source
-//                timeTextView.text = article.publishedAt
-//
-//                detailsWebView.baseSetup()
-//                article.url?.let { detailsWebView.loadUrl(it) }
-//                if (detailsWebView.isShown) {
-//                    detailsWebViewProgressBar.visibility = View.INVISIBLE
-//                }
-//            }
-//        }
-//    }
-//
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        viewModel.update(article)
-//    }
+    private fun initViews() {
+        binding.readLaterImageButton.setOnClickListener {
+            if (article.isReadLater == 1) {
+                article.isReadLater = 0
+                binding.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_white)
+            } else if (article.isReadLater == 0) {
+                article.isReadLater = 1
+                binding.readLaterImageButton.setImageResource(R.drawable.ic_bookmark_red)
+            }
+        }
+    }
+
+    override fun bindViewModel() {
+        super.bindViewModel()
+        viewModel.articles.observe(viewLifecycleOwner) {
+            with(binding) {
+                titleTextView.text = article.title
+                descriptionTextView.text = article.description
+                newsImageView.glideImage(article.urlToImage, binding.imageProgressBar)
+
+                if (article.isReadLater == 1)
+                    readLaterImageButton.setImageResource(R.drawable.ic_bookmark_red)
+                else
+                    readLaterImageButton.setImageResource(R.drawable.ic_bookmark_white)
+
+                sourceTextView.text = article.source
+                timeTextView.text = article.publishedAt
+
+                detailsWebView.baseSetup()
+                article.url?.let { detailsWebView.loadUrl(it) }
+                if (detailsWebView.isShown) {
+                    detailsWebViewProgressBar.visibility = View.INVISIBLE
+                }
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.update(article)
+    }
+
 }

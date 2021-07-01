@@ -30,55 +30,50 @@ class ReadLaterFragment : BaseFragment<ReadLaterViewModel>(R.layout.fragment_rea
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        initViews()
-//        bindViewModel()
+        initViews()
+        bindViewModel()
     }
 
-//    private fun initViews() {
-//        adapter = NewsRecyclerViewAdapter(articleClickListener, readLaterClickListener)
-//        binding.newsLayout.newsRecyclerView.adapter = adapter
-//    }
-//
-//    private fun bindViewModel() {
-//        with(viewModel) {
-//            with(binding) {
-//                bindVisible(loadingVisible, newsLayout.progressbar)
-//                bindVisible(errorVisible, newsLayout.noArticleTextView)
-//                bindVisible(internetErrorVisible, newsLayout.internetProblemsTextView)
-//                bindVisible(pageLoadingVisible, newsLayout.scrollProgressbar)
-//                bindVisible(recyclerViewVisible, newsLayout.newsRecyclerView)
-//
-//                bindRecyclerViewAdapter(articles, adapter)
-//            }
-//        }
-//    }
-//
-//    private val articleClickListener: (article: Article) -> Unit = { article ->
-//        Toast.makeText(requireContext(), "articleClickListener", Toast.LENGTH_SHORT).show()
-//        findNavController().navigate(NewsFragmentDirections.toDetails(article))
-//    }
-//
-//    private val readLaterClickListener: (article: Article) -> Unit = { article ->
-//        Toast.makeText(
-//            requireContext(),
-//            getString(R.string.toast_deleted_read_later),
-//            Toast.LENGTH_SHORT
-//        ).show()
-//        viewModel.delete(article.toReadLaterArticle())
-//    }
-//
-//    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-//        inflater.inflate(R.menu.menu_everythig, menu)
-//        super.onCreateOptionsMenu(menu, inflater)
-//    }
-//
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        when (item.itemId) {
-//            R.id.delete -> {
-//                viewModel.deleteAllClicked()
-//                return true
-//            }
-//        }
-//        return super.onOptionsItemSelected(item)
-//    }
+    private fun initViews() {
+        adapter = NewsRecyclerViewAdapter(articleClickListener, readLaterClickListener)
+        binding.newsLayout.newsRecyclerView.adapter = adapter
+    }
+
+    override fun bindViewModel() {
+        super.bindViewModel()
+        with(viewModel) {
+            with(binding) {
+                bindVisible(loadingVisible, newsLayout.progressbar)
+                bindVisible(errorVisible, newsLayout.noArticleTextView)
+                bindVisible(internetErrorVisible, newsLayout.internetProblemsTextView)
+                bindVisible(pageLoadingVisible, newsLayout.scrollProgressbar)
+                bindVisible(recyclerViewVisible, newsLayout.newsRecyclerView)
+
+                bindRecyclerViewAdapter(articles, adapter)
+            }
+        }
+    }
+
+    private val articleClickListener: (article: Article) -> Unit = { article ->
+        findNavController().navigate(NewsFragmentDirections.toDetails(article))
+    }
+
+    private val readLaterClickListener: (article: Article) -> Unit = { article ->
+        viewModel.readLaterClicked(article)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_everythig, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.delete -> {
+                viewModel.deleteAllClicked()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
 }

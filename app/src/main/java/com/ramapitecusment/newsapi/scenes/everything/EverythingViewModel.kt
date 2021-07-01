@@ -18,7 +18,6 @@ import io.reactivex.rxjava3.processors.PublishProcessor
 class EverythingViewModel(private val newsService: NewsService, networkService: NetworkService) :
     BaseNewsViewModel() {
 
-    var articles = DataList<Article>()
     var searchTag = Text()
     var searchTagRX: PublishProcessor<String> = PublishProcessor.create()
 
@@ -85,18 +84,6 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
             })
             .addToSubscription()
 
-        isPageEndRx
-            .subscribeOnIoObserveMain()
-            .subscribe(
-                { isPageEnd ->
-                    showLog("isPageEnd --- $isPageEnd")
-                    this.isPageEnd.mutableValue = isPageEnd
-                },
-                {
-                    showErrorLog("isPageEnd Error: $it")
-                })
-            .addToSubscription()
-
         searchTagRX
             .filter { charSequence ->
                 !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
@@ -125,11 +112,12 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
 
     fun deleteAllClicked() {
         newsService
-            .deleteAll()
+            .deleteAllBySearchTag()
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Delete success")
                 resetPageValue()
+                this.articles.mutableValue = emptyList()
             }, { error ->
                 showErrorLog("Delete error: $error")
             })
@@ -178,12 +166,4 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
         page.mutableValue = 1
         pageRx.onNext(1)
     }
-
-    fun increasePageValue() {
-        showLog("${articles.value.size} - ${(articles.value.size / PAGE_SIZE_VALUE) + 1}")
-        page.mutableValue = (articles.value.size / PAGE_SIZE_VALUE) + 1
-        pageRx.onNext((articles.value.size / PAGE_SIZE_VALUE) + 1)
-        isLoadingPage.mutableValue = true
-    }
-
 }

@@ -17,7 +17,30 @@ abstract class BaseNewsViewModel : BaseViewModel() {
     var isPageEndRx: PublishProcessor<Boolean> = PublishProcessor.create()
     protected val isPageEnd = Visible(false)
 
+    var articles = DataList<Article>()
+
     val isLoadingPage = Visible(false)
+
+    fun increasePageValue() {
+        showLog("${articles.value.size} - ${(articles.value.size / PAGE_SIZE_VALUE) + 1}")
+        page.mutableValue = (articles.value.size / PAGE_SIZE_VALUE) + 1
+        pageRx.onNext((articles.value.size / PAGE_SIZE_VALUE) + 1)
+        isLoadingPage.mutableValue = true
+    }
+
+    init {
+        isPageEndRx
+            .subscribeOnIoObserveMain()
+            .subscribe(
+                { isPageEnd ->
+                    showLog("isPageEnd --- $isPageEnd")
+                    this.isPageEnd.mutableValue = isPageEnd
+                },
+                {
+                    showErrorLog("isPageEnd Error: $it")
+                })
+            .addToSubscription()
+    }
 
     val loadingVisible = Visible(false)
     val errorVisible = Visible(false)
