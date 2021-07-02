@@ -6,18 +6,17 @@ import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
-import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
-import com.ramapitecusment.newsapi.common.mvvm.DataList
+import com.ramapitecusment.newsapi.common.RxPagingViewModel
 import com.ramapitecusment.newsapi.common.mvvm.Text
 import com.ramapitecusment.newsapi.services.database.Article
+import com.ramapitecusment.newsapi.services.everything.EverythingService
 import com.ramapitecusment.newsapi.services.network.NetworkService
 import com.ramapitecusment.newsapi.services.network.toArticle
-import com.ramapitecusment.newsapi.services.news.NewsService
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.processors.PublishProcessor
 
-class EverythingViewModel(private val newsService: NewsService, networkService: NetworkService) :
-    BaseNewsViewModel() {
+class EverythingViewModel(private val everythingService: EverythingService, networkService: NetworkService) :
+    RxPagingViewModel() {
 
     var searchTag = Text()
     var searchTagRX: PublishProcessor<String> = PublishProcessor.create()
@@ -39,13 +38,12 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
                 .map { it.toString() }
                 .distinctUntilChanged()
                 .doOnNext { loadingState() }
-            ) { t1, t2 ->
-                showLog("withLatestFrom $t1 ---- $t2")
+            ) { _page, _search ->
+                showLog("withLatestFrom $_search ---- $_page")
                 showLog("withLatestFrom ${searchTag.value} ---- ${page.value}")
+                everythingService.getEverythingRemote(_search, _page)
             }
-            .switchMap {
-                newsService.getEverythingRemote(searchTag.value, page.value).toFlowable()
-            }
+            .switchMap { it.toFlowable() }
             .filter { response ->
                 var goFuther = false
                 showLog(response.toString())
@@ -69,10 +67,10 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
                 response.body()?.articles?.toArticle(searchTag = searchTag.value)?.let { it }
             }
             .switchMap { articleList ->
-                newsService.insertAll(articleList).andThen(Flowable.just(1))
+                everythingService.insertAll(articleList).andThen(Flowable.just(1))
             }
             .switchMap {
-                newsService.getArticlesBySearchTag(searchTag.value)
+                everythingService.getArticlesBySearchTag(searchTag.value)
             }
             .map { articleList ->
                 articleList.distinctBy { listOf(it.title, it.publishedAt, it.author) }
@@ -89,10 +87,11 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
                 internetErrorState()
                 showErrorLog("Error getFromRemote: $it")
             })
+            .addToSubscription()
     }
 
     fun deleteAllClicked() {
-        newsService
+        everythingService
             .deleteAllBySearchTag()
             .subscribeOnIoObserveMain()
             .subscribe({
@@ -128,7 +127,7 @@ class EverythingViewModel(private val newsService: NewsService, networkService: 
 
     private fun update(article: Article) {
         Log.d(LOG, "update: ${article.id}")
-        newsService
+        everythingService
             .update(article)
             .subscribeOnIoObserveMain()
             .subscribe({

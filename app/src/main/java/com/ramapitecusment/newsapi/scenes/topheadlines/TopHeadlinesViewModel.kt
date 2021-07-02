@@ -6,23 +6,22 @@ import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
+import com.ramapitecusment.newsapi.common.RxPagingViewModel
 import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
 import com.ramapitecusment.newsapi.common.mvvm.Text
 import com.ramapitecusment.newsapi.services.database.*
 import com.ramapitecusment.newsapi.services.network.NetworkService
 import com.ramapitecusment.newsapi.services.network.toArticle
-import com.ramapitecusment.newsapi.services.news.NewsService
+import com.ramapitecusment.newsapi.services.topHeadlines.TopHeadlinesService
 import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.processors.PublishProcessor
-import io.reactivex.rxjava3.subjects.PublishSubject
 import java.util.concurrent.TimeUnit
 
 class TopHeadlinesViewModel(
     private val topHeadlinesService: TopHeadlinesService,
     networkService: NetworkService
 ) :
-    BaseNewsViewModel() {
+    RxPagingViewModel() {
     private var country = Text()
     private var countryRX: PublishProcessor<String> = PublishProcessor.create()
 

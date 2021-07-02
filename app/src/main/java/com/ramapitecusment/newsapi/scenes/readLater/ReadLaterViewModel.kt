@@ -4,16 +4,14 @@ import android.util.Log
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.LOG
-import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
+import com.ramapitecusment.newsapi.common.RxPagingViewModel
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.network.NetworkService
-import com.ramapitecusment.newsapi.services.news.NewsService
-import io.reactivex.rxjava3.disposables.Disposable
+import com.ramapitecusment.newsapi.services.readLater.ReadLaterService
 
 class ReadLaterViewModel(
-    private val newsService: NewsService,
-    private val networkService: NetworkService
-) : BaseNewsViewModel() {
+    private val readLaterService: ReadLaterService, networkService: NetworkService
+) : RxPagingViewModel() {
 
     init {
         if (networkService.isInternetAvailable(MainApplication.instance)) {
@@ -23,7 +21,7 @@ class ReadLaterViewModel(
             showErrorLog("There is no Internet connection")
         }
 
-        newsService.getArticlesByReadLater()
+        readLaterService.getArticlesByReadLater()
             .subscribeOnSingleObserveMain()
             .subscribe({
                 showLog("On Next readLaterService: ${it.size}")
@@ -35,6 +33,7 @@ class ReadLaterViewModel(
             }, {
                 showErrorLog("Error getArticlesBySearchTag: it")
             })
+            .addToSubscription()
     }
 
     fun readLaterClicked(article: Article) {
@@ -66,7 +65,7 @@ class ReadLaterViewModel(
 
     private fun update(article: Article) {
         Log.d(LOG, "update: ${article.id}")
-        newsService
+        readLaterService
             .update(article)
             .subscribeOnIoObserveMain()
             .subscribe({
@@ -79,7 +78,7 @@ class ReadLaterViewModel(
 
     private fun updateArticles(articles: List<Article>) {
         articles.map { it.isReadLater = 0 }
-        newsService.updateArticles(articles)
+        readLaterService.updateArticles(articles)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Update articles success")

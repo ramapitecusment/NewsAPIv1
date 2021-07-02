@@ -1,4 +1,4 @@
-package com.ramapitecusment.newsapi.scenes.topheadlines
+package com.ramapitecusment.newsapi.services.topHeadlines
 
 import com.ramapitecusment.newsapi.common.API_KEY_VALUE
 import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
@@ -20,25 +20,14 @@ class TopHeadlinesService(private val newsApi: NewsApi, private val articleDao: 
 
     fun insert(article: Article): Completable = articleDao.insertArticle(article)
 
-    fun getArticlesBySearchTag(searchTag: String): Flowable<List<Article>> =
-        articleDao.getArticlesBySearchTag(searchTag)
-
     fun getArticlesByCountry(country: String): Flowable<List<Article>> =
         articleDao.getArticlesByCountry(country)
 
     fun update(article: Article): Completable = articleDao.update(article)
 
-    fun updateArticles(articles: List<Article>): Completable = articleDao.updateArticles(articles)
-
     fun delete(article: Article): Completable = articleDao.delete(article)
 
-    fun deleteAll(): Completable = articleDao.delete()
-
-    fun deleteAllBySearchTag(searchTag: String = ""): Completable =
-        articleDao.deleteAllBySearchTag(searchTag)
-
-    fun deleteAllByCountry(country: String= ""): Completable = articleDao.deleteAllByCountry(country)
-
-    fun deleteAllByReadLater(): Completable = articleDao.deleteAllByReadLater()
+    fun deleteAllByCountry(country: String = ""): Completable =
+        articleDao.deleteAllByCountry(country)
 
 }
