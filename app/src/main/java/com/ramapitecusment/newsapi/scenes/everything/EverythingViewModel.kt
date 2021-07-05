@@ -1,187 +1,150 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
-import android.util.Log
-import android.util.TimeUtils
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import com.ramapitecusment.newsapi.common.LOG
-import com.ramapitecusment.newsapi.common.QUERY_DEFAULT
-import com.ramapitecusment.newsapi.services.database.ArticleEntity
+import android.text.TextUtils
+import com.ramapitecusment.newsapi.MainApplication
+import com.ramapitecusment.newsapi.R
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.PAGE_SIZE_VALUE
+import com.ramapitecusment.newsapi.common.RxPagingViewModel
+import com.ramapitecusment.newsapi.common.mvvm.Text
+import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.everything.EverythingService
-import com.ramapitecusment.newsapi.services.network.Response
-import com.ramapitecusment.newsapi.services.network.toArticleEntity
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import com.ramapitecusment.newsapi.services.network.NetworkService
+import com.ramapitecusment.newsapi.services.network.toArticle
 import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Flowable.combineLatest
-import io.reactivex.rxjava3.core.Maybe
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.processors.PublishProcessor
-import io.reactivex.rxjava3.processors.ReplayProcessor
-import io.reactivex.rxjava3.schedulers.Schedulers
-import retrofit2.Retrofit
-import java.util.concurrent.TimeUnit
 
+class EverythingViewModel(
+    private val everythingService: EverythingService, networkService: NetworkService
+) : RxPagingViewModel() {
 
-class EverythingViewModel(private val everythingService: EverythingService) : ViewModel() {
-    private val compositeDisposable = CompositeDisposable()
-    var searchTag: PublishProcessor<String> = PublishProcessor.create()
-    var articles: PublishProcessor<List<ArticleEntity>> = PublishProcessor.create()
-    var pageObservable: PublishProcessor<Int> = PublishProcessor.create()
-
-    val getFromRemoteBySearchTagAndPage: Flowable<retrofit2.Response<Response>>
-
-    private var search = QUERY_DEFAULT
-    private var page = 1
-
-    private val _isLoading: MutableLiveData<Boolean> by lazy {
-        MutableLiveData()
-    }
-    val isLoading: LiveData<Boolean>
-        get() = _isLoading
-
-    private val _isError: MutableLiveData<Boolean> by lazy {
-        MutableLiveData()
-    }
-    val isError: LiveData<Boolean>
-        get() = _isError
-
-    private val _isInternetError: MutableLiveData<Boolean> by lazy {
-        MutableLiveData()
-    }
-    val isInternetError: LiveData<Boolean>
-        get() = _isInternetError
-
-    private val _isPageLoading: MutableLiveData<Boolean> by lazy {
-        MutableLiveData()
-    }
-    val isPageLoading: LiveData<Boolean>
-        get() = _isPageLoading
+    var searchTag = Text()
+    var searchTagRX: PublishProcessor<String> = PublishProcessor.create()
 
     init {
-        searchTag
-            .switchMap {
-                Log.d(LOG, "SearchTag: $search - $page")
-                search = it
-                _isError.postValue(false)
-                _isLoading.postValue(true)
-                everythingService.getArticlesBySearchTag(search)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread()).onBackpressureBuffer()
-            }
-            .distinct()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                articles.onNext(it)
-                Log.d(LOG, "searchTag Articles on Next: ${it.size}")
-            }, {
-                Log.e(LOG, "searchTag Articles Error: $it")
-                _isError.postValue(true)
-                _isLoading.postValue(false)
-            })
+        if (networkService.isInternetAvailable(MainApplication.instance)) {
+            showLog("Connected to internet")
+        } else {
+            internetErrorState()
+            showErrorLog("There is no Internet connection")
+        }
 
-        pageObservable
-            .distinct()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Log.d(LOG, "pageObservable: $search - $page")
-                page = it
-                _isError.postValue(false)
-                _isPageLoading.postValue(true)
-            }, {
-                Log.e(LOG, "pageObservable Error: $it")
-                _isError.postValue(true)
-                _isLoading.postValue(false)
-                _isPageLoading.postValue(false)
-            })
-
-        getFromRemoteBySearchTagAndPage =
-            combineLatest(searchTag, pageObservable) { t1, t2 ->
-                search = t1
-                page = t2
-                everythingService.getArticlesBySearchTag(t1)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                everythingService
-                    .getFromRemote(t1, t2)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-            }
-                .switchMap {
-                    it.toFlowable()
+        pageRx
+            .withLatestFrom(searchTagRX
+                .filter { charSequence ->
+                    showLog("before filter rxSearch -$charSequence- ${internetErrorVisible.value}")
+                    !(TextUtils.isEmpty(charSequence.trim { it <= ' ' })) && !internetErrorVisible.value
                 }
-                .distinct()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext {
-                    Log.d(LOG, "getFromRemote Response: $it")
-                    if (it.isSuccessful) {
-                        _isInternetError.postValue(false)
-                        it.body()?.let { body ->
-                            Log.d(LOG, "isSuccessful Response: ${body.articles?.size}")
-                            body.articles?.toArticleEntity(search)?.let { it1 -> insertAll(it1) }
-                        }
+                .map { it.toString() }
+                .distinctUntilChanged()
+                .doOnNext { loadingState() }
+            ) { _page, _search ->
+                showLog("withLatestFrom $_search ---- $_page")
+                showLog("withLatestFrom ${searchTag.value} ---- ${page.value}")
+                everythingService.getEverythingRemote(_search, _page)
+            }
+            .switchMap { it.toFlowable() }
+            .filter { response ->
+                var goFurther = false
+                showLog(response.toString())
+                if (response.isSuccessful) {
+                    showLog("Get from remote success: ${response.body()?.articles?.size}")
+                    if (!isPageEnd.value) {
+                        goFurther = true
                     } else {
-                        if (page == 1) {
-                            _isError.postValue(true)
-                            _isLoading.postValue(false)
-                        }
+                        showLog("Get from remote success pageEnd: ${isPageEnd.value}")
+                        successState()
                     }
+                    isPageEndRx.onNext((response.body()?.articles?.size ?: 0 < PAGE_SIZE_VALUE))
+                } else {
+                    errorState()
+                    showErrorLog("Got error from the server: $response")
+                    goFurther = false
                 }
-                .doOnError {
-                    Log.e(LOG, "Internet Error: $it")
-                    _isInternetError.postValue(true)
-                }
-                .doOnComplete {
-                    Log.d(LOG, "Internet Completed")
-                }
-    }
-
-    private fun insertAll(articles: List<ArticleEntity>) {
-        val disposable = everythingService.insertAll(articles)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Log.d(LOG, "Insert success: $it")
-                if (it.isEmpty()) {
-                    if (page == 1) {
-                        _isError.postValue(true)
-                        _isLoading.postValue(false)
-                    }
+                return@filter goFurther
+            }
+            .map { response ->
+                response.body()?.articles?.toArticle(searchTag = searchTag.value)?.let { it }
+            }
+            .switchMap { articleList ->
+                everythingService.insertAll(articleList).andThen(Flowable.just(1))
+            }
+            .switchMap {
+                everythingService.getArticlesBySearchTag(searchTag.value)
+            }
+            .map { articleList ->
+                articleList.distinctBy { listOf(it.title, it.publishedAt, it.author) }
+            }
+            .subscribeOnIoObserveMain()
+            .subscribe({ articleList ->
+                showLog("On Next combine latest: ${articleList.size} - ${searchTag.value}")
+                isLoadingPage.mutableValue = false
+                if (articleList.isNotEmpty()) {
+                    articles.mutableValue = articleList
+                    successState()
                 }
             }, {
-                Log.e(LOG, "Insert error: $it")
-            }, {
-                Log.d(LOG, "Insert complete")
+                internetErrorState()
+                showErrorLog("Error getFromRemote: $it")
             })
-        compositeDisposable.add(disposable)
+            .addToSubscription()
     }
 
-    fun deleteAll() {
-        val disposable = everythingService.deleteAll()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+    fun deleteAllClicked() {
+        everythingService
+            .deleteAllBySearchTag()
+            .subscribeOnIoObserveMain()
             .subscribe({
-                Log.d(LOG, "Delete success")
-            }, {
-                Log.e(LOG, "Delete error: $it")
+                showLog("Delete success")
+                resetPageValue()
+                this.articles.mutableValue = emptyList()
+            }, { error ->
+                showErrorLog("Delete error: $error")
             })
-        compositeDisposable.add(disposable)
+            .addToSubscription()
     }
 
-    fun destroy() {
-        // Using clear will clear all, but can accept new disposable
-        compositeDisposable.clear()
+    fun readLaterButtonClicked(article: Article) {
+        showToast(getString(R.string.toast_added_read_later))
+        var isReadLater = article.isReadLater
+        if (article.isReadLater == 1) isReadLater = 0
+        else if (article.isReadLater == 0) isReadLater = 1
+        update(
+            Article(
+                article.id,
+                article.author,
+                article.content,
+                article.description,
+                article.publishedAt,
+                article.source,
+                article.title,
+                article.url,
+                article.urlToImage,
+                article.searchTag,
+                article.country,
+                isReadLater
+            )
+        )
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        deleteAll()
-        // Using dispose will clear all and set isDisposed = true, so it will not accept any new disposable
-        compositeDisposable.dispose()
+    private fun update(article: Article) {
+        showLog("update: ${article.id}")
+        everythingService
+            .update(article)
+            .subscribeOnIoObserveMain()
+            .subscribe({
+                showLog("Update success")
+            }, { error ->
+                showErrorLog("Update error: $error")
+            })
+            .addToSubscription()
+    }
+
+    fun searchButtonClicked() {
+        resetPageValue()
+    }
+
+    private fun resetPageValue() {
+        page.mutableValue = 1
+        pageRx.onNext(1)
     }
 }

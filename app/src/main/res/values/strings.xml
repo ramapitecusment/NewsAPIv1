@@ -1,19 +1,21 @@
 <resources>
     <string name="app_name">NewsApi</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
-    <string name="settings">Settings</string>
-    <string name="read_later_image">Read Later Image</string>
-    <string name="news_image">News Image</string>
-    <string name="top_to_bottom_shadow">Top to Bottom Shadow</string>
+    <string name="scr_any_iv_read_later_image">Read Later Image</string>
+    <string name="scr_any_iv_news_image">News Image</string>
 
-    <string name="title">Baseball tickets? Gambling debts? Supreme Court nominee Brett Kavanaugh answers Democrats\' queries</string>
-    <string name="description">In an unprecedented give-and-take, Kavanaugh released 263 pages of questions and answers, nearly all aimed at 10 Democrats on the Senate Judiciary Committee who jousted with him during a tumultuous, four-day confirmation hearing last week.</string>
-    <string name="Interpunct">•</string>
-    <string name="error">No News found. Please, check the Internet connection</string>
-    <string name="no_article_is_found_internet">Unfortunately, no News are found. Please, check the Internet connectivity</string>
-    <string name="no_article_is_found">Unfortunately, no News are found.</string>
-    <string name="search">Search</string>
-    <string name="delete">Delete</string>
-    <string name="delete_data">Очистить данные</string>
+    <string name="scr_any_tv_title">Baseball tickets? Gambling debts? Supreme Court nominee Brett Kavanaugh answers Democrats\' queries</string>
+    <string name="scr_any_tv_description">In an unprecedented give-and-take, Kavanaugh released 263 pages of questions and answers, nearly all aimed at 10 Democrats on the Senate Judiciary Committee who jousted with him during a tumultuous, four-day confirmation hearing last week.</string>
+    <string name="common_interpunct">•</string>
+    <string name="scr_any_tv_internet_error">Unfortunately, no News are found. Please, check the Internet connectivity</string>
+    <string name="scr_any_tv_no_news">Unfortunately, no News are found.</string>
+    <string name="common_search">Search</string>
+    <string name="common_delete">Delete</string>
+    <string name="toast_added_read_later">The article was added to ReadLater</string>
+    <string name="scr_any_cds_gradient">Gradient</string>
+    <string name="scr_any_cds_read_later_image">Read Later Image</string>
+    <string name="scr_evr_tab_title">Recent</string>
+    <string name="scr_tp_hdlns_tab_title">Top Headlines</string>
+    <string name="scr_rd_ltr_tab_title">Read Later</string>
+    <string name="common_error_tab_title">Recent</string>
 </resources>

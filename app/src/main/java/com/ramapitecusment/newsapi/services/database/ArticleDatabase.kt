@@ -4,14 +4,15 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.NEWS_DATABASE
 
 @Database(
-    entities = [ArticleEntity::class, ArticleTopHeadline::class, ReadLater::class],
-    version = 3,
+    entities = [Article::class],
+    version = 6,
     exportSchema = false
 )
-abstract class ArticleDatabase : RoomDatabase(){
-    abstract fun databaseDao(): ArticleDao
+abstract class ArticleDatabase : RoomDatabase() {
+    abstract fun articleDao(): ArticleDao
 
     companion object {
         @Volatile
@@ -24,7 +25,7 @@ abstract class ArticleDatabase : RoomDatabase(){
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         ArticleDatabase::class.java,
-                        "news_database"
+                        NEWS_DATABASE
                     )
                         .fallbackToDestructiveMigration()
                         .build()

@@ -1,4 +1,4 @@
-package com.ramapitecusment.newsapi.services.everything
+package com.ramapitecusment.newsapi.services.topHeadlines
 
 import com.ramapitecusment.newsapi.common.API_KEY_VALUE
 import com.ramapitecusment.newsapi.common.AppConsts.Companion.EMPTY_STRING
@@ -11,23 +11,23 @@ import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Single
 
-class EverythingService(private val newsApi: NewsApi, private val articleDao: ArticleDao) {
+class TopHeadlinesService(private val newsApi: NewsApi, private val articleDao: ArticleDao) {
 
-    fun getEverythingRemote(searchTag: String, page: Int): Single<retrofit2.Response<Response>> =
-        newsApi.getEverythingRemote(searchTag, API_KEY_VALUE, PAGE_SIZE_VALUE, page)
+    fun getTopHeadlinesRemote(country: String, page: Int): Single<retrofit2.Response<Response>> =
+        newsApi.getTopHeadlinesRemote(country, API_KEY_VALUE, PAGE_SIZE_VALUE, page)
 
     fun insertAll(articles: List<Article>): Completable = articleDao.insert(articles)
 
     fun insert(article: Article): Completable = articleDao.insertArticle(article)
 
-    fun getArticlesBySearchTag(searchTag: String): Flowable<List<Article>> =
-        articleDao.getArticlesBySearchTag(searchTag)
+    fun getArticlesByCountry(country: String): Flowable<List<Article>> =
+        articleDao.getArticlesByCountry(country)
 
     fun update(article: Article): Completable = articleDao.update(article)
 
     fun delete(article: Article): Completable = articleDao.delete(article)
 
-    fun deleteAllBySearchTag(searchTag: String = EMPTY_STRING): Completable =
-        articleDao.deleteAllBySearchTag(searchTag)
+    fun deleteAllByCountry(country: String = EMPTY_STRING): Completable =
+        articleDao.deleteAllByCountry(country)
 
 }
