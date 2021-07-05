@@ -44,12 +44,12 @@ class EverythingViewModel(
             }
             .switchMap { it.toFlowable() }
             .filter { response ->
-                var goFuther = false
+                var goFurther = false
                 showLog(response.toString())
                 if (response.isSuccessful) {
                     showLog("Get from remote success: ${response.body()?.articles?.size}")
                     if (!isPageEnd.value) {
-                        goFuther = true
+                        goFurther = true
                     } else {
                         showLog("Get from remote success pageEnd: ${isPageEnd.value}")
                         successState()
@@ -58,9 +58,9 @@ class EverythingViewModel(
                 } else {
                     errorState()
                     showErrorLog("Got error from the server: $response")
-                    goFuther = false
+                    goFurther = false
                 }
-                return@filter goFuther
+                return@filter goFurther
             }
             .map { response ->
                 response.body()?.articles?.toArticle(searchTag = searchTag.value)?.let { it }

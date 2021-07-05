@@ -13,7 +13,7 @@ class NewsDetailsViewModel(
 
     val articles = DataList<Article>()
 
-    fun update(article: Article) {
+    fun stop(article: Article) {
         val isReadLater = article.isReadLater
         newsService.update(
             Article(
@@ -39,4 +39,5 @@ class NewsDetailsViewModel(
             })
             .addToSubscription()
     }
+    
 }

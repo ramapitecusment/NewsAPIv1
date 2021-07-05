@@ -65,7 +65,7 @@ class NewsDetailsFragment : BaseFragment<NewsDetailsViewModel>(R.layout.fragment
 
     override fun onStop() {
         super.onStop()
-        viewModel.update(article)
+        viewModel.stop(article)
     }
 
 }
