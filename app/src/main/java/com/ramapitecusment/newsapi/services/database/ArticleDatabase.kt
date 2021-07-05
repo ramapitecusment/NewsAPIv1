@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.NEWS_DATABASE
 
 @Database(
     entities = [Article::class],
@@ -24,7 +25,7 @@ abstract class ArticleDatabase : RoomDatabase() {
                     instance = Room.databaseBuilder(
                         context.applicationContext,
                         ArticleDatabase::class.java,
-                        "news_database"
+                        NEWS_DATABASE
                     )
                         .fallbackToDestructiveMigration()
                         .build()

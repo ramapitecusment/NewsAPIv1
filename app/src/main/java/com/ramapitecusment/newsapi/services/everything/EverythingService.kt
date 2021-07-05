@@ -1,7 +1,8 @@
 package com.ramapitecusment.newsapi.services.everything
 
 import com.ramapitecusment.newsapi.common.API_KEY_VALUE
-import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.EMPTY_STRING
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleDao
 import com.ramapitecusment.newsapi.services.network.NewsApi
@@ -26,7 +27,7 @@ class EverythingService(private val newsApi: NewsApi, private val articleDao: Ar
 
     fun delete(article: Article): Completable = articleDao.delete(article)
 
-    fun deleteAllBySearchTag(searchTag: String = ""): Completable =
+    fun deleteAllBySearchTag(searchTag: String = EMPTY_STRING): Completable =
         articleDao.deleteAllBySearchTag(searchTag)
 
 }

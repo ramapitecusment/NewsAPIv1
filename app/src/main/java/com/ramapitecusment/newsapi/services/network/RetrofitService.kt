@@ -1,6 +1,13 @@
 package com.ramapitecusment.newsapi.services.network
 
-import com.ramapitecusment.newsapi.common.*
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.API_KEY
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.COUNTRY
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.EVERYTHING
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.PAGE
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.PAGE_SIZE
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.QUERY
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.TOP_HEADLINES
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.URL
 import io.reactivex.rxjava3.core.Single
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

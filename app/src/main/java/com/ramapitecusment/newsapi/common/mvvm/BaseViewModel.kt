@@ -7,7 +7,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.*
 import androidx.lifecycle.Observer
 import com.ramapitecusment.newsapi.MainApplication
-import com.ramapitecusment.newsapi.common.LOG
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.LOG
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.*
 import io.reactivex.rxjava3.disposables.Disposable

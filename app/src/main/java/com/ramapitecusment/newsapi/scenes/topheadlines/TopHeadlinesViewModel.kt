@@ -4,10 +4,9 @@ import android.text.TextUtils
 import android.util.Log
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.R
-import com.ramapitecusment.newsapi.common.LOG
-import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.COUNTRY_DEFAULT_VALUE
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.RxPagingViewModel
-import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
 import com.ramapitecusment.newsapi.common.mvvm.Text
 import com.ramapitecusment.newsapi.services.database.*
 import com.ramapitecusment.newsapi.services.network.NetworkService
@@ -18,10 +17,8 @@ import io.reactivex.rxjava3.processors.PublishProcessor
 import java.util.concurrent.TimeUnit
 
 class TopHeadlinesViewModel(
-    private val topHeadlinesService: TopHeadlinesService,
-    networkService: NetworkService
-) :
-    RxPagingViewModel() {
+    private val topHeadlinesService: TopHeadlinesService, networkService: NetworkService
+) : RxPagingViewModel() {
     private var country = Text()
     private var countryRX: PublishProcessor<String> = PublishProcessor.create()
 
@@ -117,8 +114,8 @@ class TopHeadlinesViewModel(
         if (networkService.isInternetAvailable(MainApplication.instance)) {
             showLog("Connected to internet")
             pageRx.onNext(1)
-            country.mutableValue = "ru"
-            countryRX.onNext("ru")
+            country.mutableValue = COUNTRY_DEFAULT_VALUE
+            countryRX.onNext(COUNTRY_DEFAULT_VALUE)
             loadingState()
         } else {
             internetErrorState()
@@ -127,8 +124,7 @@ class TopHeadlinesViewModel(
     }
 
     fun deleteAllClicked() {
-        topHeadlinesService
-            .deleteAllByCountry()
+        topHeadlinesService.deleteAllByCountry()
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Delete success")
@@ -164,9 +160,8 @@ class TopHeadlinesViewModel(
     }
 
     private fun update(article: Article) {
-        Log.d(LOG, "update: ${article.id}")
-        topHeadlinesService
-            .update(article)
+        showLog("update: ${article.id}")
+        topHeadlinesService.update(article)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Update success")

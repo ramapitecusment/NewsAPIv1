@@ -1,14 +1,14 @@
 package com.ramapitecusment.newsapi.services.topHeadlines
 
 import com.ramapitecusment.newsapi.common.API_KEY_VALUE
-import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.EMPTY_STRING
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.database.ArticleDao
 import com.ramapitecusment.newsapi.services.network.NewsApi
 import com.ramapitecusment.newsapi.services.network.Response
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Maybe
 import io.reactivex.rxjava3.core.Single
 
 class TopHeadlinesService(private val newsApi: NewsApi, private val articleDao: ArticleDao) {
@@ -27,7 +27,7 @@ class TopHeadlinesService(private val newsApi: NewsApi, private val articleDao: 
 
     fun delete(article: Article): Completable = articleDao.delete(article)
 
-    fun deleteAllByCountry(country: String = ""): Completable =
+    fun deleteAllByCountry(country: String = EMPTY_STRING): Completable =
         articleDao.deleteAllByCountry(country)
 
 }

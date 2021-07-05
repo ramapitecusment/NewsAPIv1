@@ -12,7 +12,10 @@
     <string name="common_search">Search</string>
     <string name="common_delete">Delete</string>
     <string name="toast_added_read_later">The article was added to ReadLater</string>
-    <string name="toast_deleted_read_later">Article has been deleted from Read Later</string>
     <string name="scr_any_cds_gradient">Gradient</string>
     <string name="scr_any_cds_read_later_image">Read Later Image</string>
+    <string name="scr_evr_tab_title">Recent</string>
+    <string name="scr_tp_hdlns_tab_title">Top Headlines</string>
+    <string name="scr_rd_ltr_tab_title">Read Later</string>
+    <string name="common_error_tab_title">Recent</string>
 </resources>

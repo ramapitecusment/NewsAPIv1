@@ -1,8 +1,6 @@
 package com.ramapitecusment.newsapi.common.mvvm
 
-import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.services.database.Article
-import io.reactivex.rxjava3.processors.PublishProcessor
 
 abstract class BaseNewsViewModel : BaseViewModel() {
 
@@ -40,44 +38,4 @@ abstract class BaseNewsViewModel : BaseViewModel() {
         errorVisible.mutableValue = false
         recyclerViewVisible.mutableValue = false
     }
-
-//    protected open fun successState() {
-//        recyclerViewVisible.mutableValue = true
-//        errorVisible.mutableValue = false
-//        loadingVisible.mutableValue = false
-//        internetErrorVisible.mutableValue = false
-//        pageLoadingVisible.mutableValue = false
-//    }
-//
-//    protected fun pageLoadingState() {
-//        pageLoadingVisible.mutableValue = true
-//        recyclerViewVisible.mutableValue = true
-//        errorVisible.mutableValue = false
-//        loadingVisible.mutableValue = false
-//        internetErrorVisible.mutableValue = false
-//    }
-//
-//    protected fun loadingState() {
-//        loadingVisible.mutableValue = true
-//        internetErrorVisible.mutableValue = false
-//        errorVisible.mutableValue = false
-//        pageLoadingVisible.mutableValue = false
-//        recyclerViewVisible.mutableValue = false
-//    }
-//
-//    protected fun errorState() {
-//        errorVisible.mutableValue = true
-//        loadingVisible.mutableValue = false
-//        internetErrorVisible.mutableValue = false
-//        pageLoadingVisible.mutableValue = false
-//        recyclerViewVisible.mutableValue = false
-//    }
-//
-//    protected fun internetErrorState() {
-//        internetErrorVisible.mutableValue = true
-//        loadingVisible.mutableValue = false
-//        errorVisible.mutableValue = false
-//        pageLoadingVisible.mutableValue = false
-//        recyclerViewVisible.mutableValue = false
-//    }
 }

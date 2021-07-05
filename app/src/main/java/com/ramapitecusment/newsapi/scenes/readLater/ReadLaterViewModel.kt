@@ -1,9 +1,7 @@
 package com.ramapitecusment.newsapi.scenes.readLater
 
-import android.util.Log
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.R
-import com.ramapitecusment.newsapi.common.LOG
 import com.ramapitecusment.newsapi.common.RxPagingViewModel
 import com.ramapitecusment.newsapi.services.database.Article
 import com.ramapitecusment.newsapi.services.network.NetworkService
@@ -64,9 +62,8 @@ class ReadLaterViewModel(
     }
 
     private fun update(article: Article) {
-        Log.d(LOG, "update: ${article.id}")
-        readLaterService
-            .update(article)
+        showLog("update: ${article.id}")
+        readLaterService.update(article)
             .subscribeOnIoObserveMain()
             .subscribe({
                 showLog("Update success")

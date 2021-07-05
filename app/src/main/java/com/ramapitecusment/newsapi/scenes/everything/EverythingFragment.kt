@@ -1,10 +1,7 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
-import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.navigation.fragment.findNavController
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ramapitecusment.newsapi.R

@@ -1,5 +1,6 @@
 package com.ramapitecusment.newsapi.common
 
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.mvvm.BaseNewsViewModel
 import com.ramapitecusment.newsapi.common.mvvm.Data
 import com.ramapitecusment.newsapi.common.mvvm.Visible

@@ -1,32 +1,16 @@
 package com.ramapitecusment.newsapi.scenes.topheadlines
 
 import android.os.Bundle
-import android.text.format.Time
-import android.util.Log
 import android.view.*
-import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.*
 import com.ramapitecusment.newsapi.common.mvvm.BaseFragment
-import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
 import com.ramapitecusment.newsapi.databinding.FragmentTopHeadlinesBinding
-import com.ramapitecusment.newsapi.databinding.NewsItemBinding
-import com.ramapitecusment.newsapi.scenes.everything.EverythingViewModel
 import com.ramapitecusment.newsapi.scenes.news.NewsFragmentDirections
 import com.ramapitecusment.newsapi.services.database.*
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.disposables.Disposable
-import io.reactivex.rxjava3.schedulers.Schedulers
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.concurrent.TimeUnit
 
 class TopHeadlinesFragment : BaseFragment<TopHeadlinesViewModel>(R.layout.fragment_top_headlines) {
     override val viewModel: TopHeadlinesViewModel by viewModel()

@@ -1,19 +1,13 @@
 package com.ramapitecusment.newsapi.scenes.readLater
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
-import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ramapitecusment.newsapi.R
 import com.ramapitecusment.newsapi.common.*
 import com.ramapitecusment.newsapi.common.mvvm.BaseFragment
-import com.ramapitecusment.newsapi.databinding.FragmentEverythingBinding
-import com.ramapitecusment.newsapi.databinding.FragmentNewsDetailsBinding
 import com.ramapitecusment.newsapi.databinding.FragmentReadLaterBinding
-import com.ramapitecusment.newsapi.scenes.everything.EverythingViewModel
 import com.ramapitecusment.newsapi.scenes.news.NewsFragmentDirections
 import com.ramapitecusment.newsapi.services.database.Article
 import org.koin.androidx.viewmodel.ext.android.viewModel

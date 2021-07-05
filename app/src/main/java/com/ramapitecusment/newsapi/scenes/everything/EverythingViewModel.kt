@@ -1,11 +1,9 @@
 package com.ramapitecusment.newsapi.scenes.everything
 
 import android.text.TextUtils
-import android.util.Log
 import com.ramapitecusment.newsapi.MainApplication
 import com.ramapitecusment.newsapi.R
-import com.ramapitecusment.newsapi.common.LOG
-import com.ramapitecusment.newsapi.common.PAGE_SIZE_VALUE
+import com.ramapitecusment.newsapi.common.AppConsts.Companion.PAGE_SIZE_VALUE
 import com.ramapitecusment.newsapi.common.RxPagingViewModel
 import com.ramapitecusment.newsapi.common.mvvm.Text
 import com.ramapitecusment.newsapi.services.database.Article
@@ -15,8 +13,9 @@ import com.ramapitecusment.newsapi.services.network.toArticle
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.processors.PublishProcessor
 
-class EverythingViewModel(private val everythingService: EverythingService, networkService: NetworkService) :
-    RxPagingViewModel() {
+class EverythingViewModel(
+    private val everythingService: EverythingService, networkService: NetworkService
+) : RxPagingViewModel() {
 
     var searchTag = Text()
     var searchTagRX: PublishProcessor<String> = PublishProcessor.create()
@@ -109,24 +108,26 @@ class EverythingViewModel(private val everythingService: EverythingService, netw
         var isReadLater = article.isReadLater
         if (article.isReadLater == 1) isReadLater = 0
         else if (article.isReadLater == 0) isReadLater = 1
-        update(Article(
-            article.id,
-            article.author,
-            article.content,
-            article.description,
-            article.publishedAt,
-            article.source,
-            article.title,
-            article.url,
-            article.urlToImage,
-            article.searchTag,
-            article.country,
-            isReadLater
-        ))
+        update(
+            Article(
+                article.id,
+                article.author,
+                article.content,
+                article.description,
+                article.publishedAt,
+                article.source,
+                article.title,
+                article.url,
+                article.urlToImage,
+                article.searchTag,
+                article.country,
+                isReadLater
+            )
+        )
     }
 
     private fun update(article: Article) {
-        Log.d(LOG, "update: ${article.id}")
+        showLog("update: ${article.id}")
         everythingService
             .update(article)
             .subscribeOnIoObserveMain()
